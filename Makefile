@@ -1,9 +1,9 @@
 #
 # Makefile
 #
-
-CC              ?= gcc
-CXX             ?= g++
+CROSS_COMPILE   = ~/Tina-Linux/prebuilt/gcc/linux-x86/arm/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-
+CC              = $(CROSS_COMPILE)gcc
+CXX             = $(CROSS_COMPILE)g++
 LVGL_DIR_NAME   ?= lvgl
 LVGL_DIR        ?= .
 
@@ -15,10 +15,11 @@ WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qu
 CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS)
 LDFLAGS         ?= -lm
 
-BIN             = main
+BIN             = lv_apps
 BUILD_DIR       = ./build
 BUILD_OBJ_DIR   = $(BUILD_DIR)/obj
 BUILD_BIN_DIR   = $(BUILD_DIR)/bin
+STAGING_DIR     = $(BUILD_DIR)/staging
 
 prefix          ?= /usr
 bindir          ?= $(prefix)/bin
@@ -29,6 +30,7 @@ CXXSRCS         := $(shell find src -type f -name '*.cpp')
 
 # Include LVGL sources
 include $(LVGL_DIR)/lvgl/lvgl.mk
+include $(LVGL_DIR)/page/page.mk
 
 OBJEXT          ?= .o
 

@@ -30,6 +30,8 @@
 #include "src/lib/simulator_util.h"
 #include "src/lib/simulator_settings.h"
 
+#include "page/main_page.h"
+
 /* Internal functions */
 static void configure_simulator(int argc, char **argv);
 static void print_lvgl_version(void);
@@ -150,8 +152,14 @@ int main(int argc, char **argv)
 #endif
 
     /*Create a Demo*/
+#if LV_USE_DEMO_WIDGETS
     lv_demo_widgets();
     lv_demo_widgets_start_slideshow();
+#endif
+
+    page_loop2();
+
+    lv_display_set_rotation(NULL,LV_DISPLAY_ROTATION_90);
 
     /* Enter the run loop of the selected backend */
     driver_backends_run_loop();
