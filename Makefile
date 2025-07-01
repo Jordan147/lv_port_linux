@@ -17,7 +17,7 @@ WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qu
                    -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated -Wempty-body \
                    -Wshift-negative-value -Wstack-usage=2048 -Wno-unused-value -std=gnu99
 CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS)
-LDFLAGS         ?= -lm -L$(TARGET_LIB_DIR)
+LDFLAGS         ?= -lm
 
 BIN             = lv_apps
 BUILD_DIR       = ./build
@@ -35,7 +35,12 @@ CXXSRCS         := $(shell find src -type f -name '*.cpp')
 
 # Include LVGL sources
 include $(LVGL_DIR)/lvgl/lvgl.mk
+include $(LVGL_DIR)/lv_freetype/lv_freetype.mk
 include $(LVGL_DIR)/page/page.mk
+
+#Do not compile the example
+EXCSRCS			+= $(shell find -L $(LVGL_DIR)/$(LVGL_DIR_NAME)/examples -name \*.c)
+CSRCS			:= $(filter-out $(EXCSRCS),$(CSRCS))
 
 OBJEXT          ?= .o
 
