@@ -950,7 +950,7 @@
 #define LV_USE_BARCODE 1
 
 /** FreeType library */
-#define LV_USE_FREETYPE 0
+#define LV_USE_FREETYPE 1
 #if LV_USE_FREETYPE
     /** Let FreeType use LVGL memory and file porting */
     #define LV_FREETYPE_USE_LVGL_PORT 0
@@ -1259,6 +1259,11 @@
 
 /** Driver for evdev input devices */
 #define LV_USE_EVDEV    1
+
+#if LV_USE_EVDEV
+    /** Use evdev to handle pointer (touchscreen/mouse) events */
+    #define LV_LINUX_EVDEV_POINTER_DEVICE "/dev/input/event2"
+#endif
 
 /** Driver for libinput input devices */
 #define LV_USE_LIBINPUT    0
