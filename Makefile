@@ -1,9 +1,13 @@
 #
 # Makefile
 #
-CROSS_COMPILE   = ~/Tina-Linux/prebuilt/gcc/linux-x86/arm/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-
+CROSS_COMPILE   = $(HOME)/Tina-Linux/prebuilt/gcc/linux-x86/arm/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-
 CC              = $(CROSS_COMPILE)gcc
 CXX             = $(CROSS_COMPILE)g++
+# TARGET_USR_DIR  = $(HOME)/Tina-Linux/out/t113-bingpi_m2/staging_dir/target/usr
+# TARGET_LIB_DIR  = $(TARGET_USR_DIR)/lib
+# TARGET_INC_DIR  = $(TARGET_USR_DIR)/include/freetype2
+
 LVGL_DIR_NAME   ?= lvgl
 LVGL_DIR        ?= .
 
@@ -13,13 +17,14 @@ WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qu
                    -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated -Wempty-body \
                    -Wshift-negative-value -Wstack-usage=2048 -Wno-unused-value -std=gnu99
 CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS)
-LDFLAGS         ?= -lm
+LDFLAGS         ?= -lm -L$(TARGET_LIB_DIR)
 
 BIN             = lv_apps
 BUILD_DIR       = ./build
 BUILD_OBJ_DIR   = $(BUILD_DIR)/obj
 BUILD_BIN_DIR   = $(BUILD_DIR)/bin
 STAGING_DIR     = $(BUILD_DIR)/staging
+export STAGING_DIR
 
 prefix          ?= /usr
 bindir          ?= $(prefix)/bin

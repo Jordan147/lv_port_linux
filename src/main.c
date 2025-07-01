@@ -133,11 +133,14 @@ static void configure_simulator(int argc, char **argv)
  */
 int main(int argc, char **argv)
 {
-
     configure_simulator(argc, argv);
 
     /* Initialize LVGL. */
     lv_init();
+
+#ifdef LV_LINUX_EVDEV_POINTER_DEVICE
+    setenv("LV_LINUX_EVDEV_POINTER_DEVICE", LV_LINUX_EVDEV_POINTER_DEVICE, 1);
+#endif
 
     /* Initialize the configured backend */
     if (driver_backends_init_backend(selected_backend) == -1) {
