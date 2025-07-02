@@ -44,7 +44,6 @@ static char *selected_backend;
 /* Global simulator settings, defined in lv_linux_backend.c */
 extern simulator_settings_t settings;
 
-
 /**
  * @brief Print LVGL version
  */

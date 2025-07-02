@@ -3,6 +3,7 @@
  *      INCLUDES
  *********************/
 // #include "lv_100ask_lesson_demos/lv_100ask_lesson_demos.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "lvgl/demos/lv_demos.h"
@@ -47,6 +48,9 @@ static lv_obj_t *home_btn;
 static lv_obj_t *next_btn;
 static lv_obj_t *prev_btn;
 
+static const lv_font_t *font_small;
+static const lv_font_t *font_large;
+
 #define FILE_MP3 "/mnt/UDISK/music/test.mp3"
 #define FILE_WAV "/mnt/UDISK/music/test.wav"
 #define FILE_MP4 "/mnt/UDISK/video/test.mp4"
@@ -55,19 +59,28 @@ static lv_obj_t *prev_btn;
  *  STATIC VARIABLES
  **********************/
 
-static void mian_page();
-static void origin_page();
-static void Activity_page();
-static void menu_page();
-static void lottery_page();
+static void mian_page(void);
+static void origin_page(void);
+static void Activity_page(void);
+static void menu_page(void);
+static void lottery_page(void);
 
-void play_wav_by_aplay(const char *filename) {
+static void play_mp4_by_aplay(const char *filename);
+static void play_wav_by_aplay(const char *filename);
+static void btn_sty(int32_t w, int32_t h, lv_obj_t *btn);
+static void btn_pic_init(lv_obj_t *img, lv_obj_t *btn, const void *img_src);
+static void main_btn_pic(lv_obj_t *img, lv_obj_t *btn, const void *img_src, int32_t cont_c, int32_t cont_r, int32_t cont_c_s, int32_t cont_r_s);
+static void main_btn();
+static void bg_pic(lv_obj_t *bg_obj);
+void layer2_style(lv_obj_t *obj);
+
+static void play_wav_by_aplay(const char *filename) {
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename);  // 加 & 可背景播放
     system(cmd);
 }
 
-void play_mp4_by_aplay(const char *filename)
+static void play_mp4_by_aplay(const char *filename)
 {
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "player -l -r270 '%s'", filename);
@@ -118,7 +131,7 @@ static void event_handler(lv_event_t *e)
 }
 
 static lv_style_t btn_style;
-void btn_sty(int32_t w, int32_t h, lv_obj_t *btn)
+static void btn_sty(int32_t w, int32_t h, lv_obj_t *btn)
 {
     lv_obj_set_size(btn, w, h);
     lv_style_init(&btn_style);
@@ -127,7 +140,7 @@ void btn_sty(int32_t w, int32_t h, lv_obj_t *btn)
     lv_obj_add_style(btn, &btn_style, 0);
 }
 
-void btn_pic_init(lv_obj_t *img, lv_obj_t *btn, const void *img_src)
+static void btn_pic_init(lv_obj_t *img, lv_obj_t *btn, const void *img_src)
 {
     img = lv_image_create(btn);
     lv_image_set_src(img, img_src);
@@ -139,7 +152,7 @@ void btn_pic_init(lv_obj_t *img, lv_obj_t *btn, const void *img_src)
     lv_obj_add_event_cb(btn, event_handler, LV_EVENT_PRESSED, 0);
 }
 
-void main_btn_pic(lv_obj_t *img, lv_obj_t *btn, const void *img_src, int32_t cont_c, int32_t cont_r, int32_t cont_c_s, int32_t cont_r_s)
+static void main_btn_pic(lv_obj_t *img, lv_obj_t *btn, const void *img_src, int32_t cont_c, int32_t cont_r, int32_t cont_c_s, int32_t cont_r_s)
 {
     lv_obj_set_grid_cell(btn, LV_GRID_ALIGN_CENTER, cont_c, cont_c_s, LV_GRID_ALIGN_CENTER, cont_r, cont_r_s);
     lv_obj_add_flag(btn, LV_OBJ_FLAG_EVENT_BUBBLE);
@@ -229,11 +242,16 @@ static lv_obj_t *create_shop_item(lv_obj_t *parent, const void *img_src, const c
     lv_obj_t *label;
     label = lv_label_create(cont);
     lv_label_set_text(label, name);
+    lv_style_init(&style_text_muted);
+    lv_style_set_text_font(&style_text_muted, font_small);
+    lv_style_set_text_opa(&style_text_muted, LV_OPA_50);
+    lv_obj_add_style(label, &style_text_muted, 0);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 2, 1, LV_GRID_ALIGN_END, 0, 1);
 
     label = lv_label_create(cont);
     lv_label_set_text(label, category);
     lv_style_init(&style_text_muted);
+    lv_style_set_text_font(&style_text_muted, font_small);
     lv_style_set_text_opa(&style_text_muted, LV_OPA_50);
     lv_obj_add_style(label, &style_text_muted, 0);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 2, 1, LV_GRID_ALIGN_START, 1, 1);
@@ -294,12 +312,18 @@ static void menu_page()
     // lv_obj_add_flag(list, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
 
     LV_IMAGE_DECLARE(item_100);
-    create_shop_item(list, &item_100, "set menu", "Clothes", "$722");
-    create_shop_item(list, &item_100, "set menu", "Clothes", "$411");
-    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
-    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
-    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
-    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    // create_shop_item(list, &item_100, "set menu", "Clothes", "$722");
+    // create_shop_item(list, &item_100, "set menu", "Clothes", "$411");
+    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    create_shop_item(list, &item_100, "套餐", "衣服", "$722");
+    create_shop_item(list, &item_100, "套餐", "衣服", "$411");
+    create_shop_item(list, &item_100, "套餐", "衣服", "$917");
+    create_shop_item(list, &item_100, "套餐", "衣服", "$917");
+    create_shop_item(list, &item_100, "套餐", "衣服", "$917");
+    create_shop_item(list, &item_100, "套餐", "衣服", "$917");
 
     /*****第二層 選單 對其 menu**** */
 
@@ -442,8 +466,23 @@ static void lottery_page()
 
 void page_loop2(void)
 {
+    font_small = lv_freetype_font_create("./yayuan.ttf",
+                                         LV_FREETYPE_FONT_RENDER_MODE_OUTLINE, //LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+                                         12,
+                                         LV_FREETYPE_FONT_STYLE_NORMAL);
+    if (font_small == NULL) {
+        die("Failed to load font yayuan.ttf with size 12\n");
+    }
+    font_large = lv_freetype_font_create("./yayuan.ttf",
+                                         LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+                                         16,
+                                         LV_FREETYPE_FONT_STYLE_NORMAL);
+    if (font_large == NULL) {
+        die("Failed to load font yayuan.ttf with size 16\n");
+    }
+
     // player_play(FILE_WAV);
-    play_wav_by_aplay("/mnt/UDISK/test.wav");
+    // play_wav_by_aplay("/mnt/UDISK/test.wav");
 
     mian_page();
 
