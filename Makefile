@@ -10,21 +10,29 @@ CXX             = $(CROSS_COMPILE)g++
 
 LVGL_DIR_NAME   ?= lvgl
 LVGL_DIR        ?= .
+STAGING_DIR     = ${HOME}/Tina-Linux/out/t113-bingpi_m2/staging_dir
+export STAGING_DIR
 
 WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qualifiers -Wextra -Wno-unused-function -Wno-error=strict-prototypes -Wpointer-arith \
                    -fno-strict-aliasing -Wno-error=cpp -Wuninitialized -Wmaybe-uninitialized -Wno-unused-parameter -Wno-missing-field-initializers -Wtype-limits \
                    -Wsizeof-pointer-memaccess -Wno-format-nonliteral -Wno-cast-qual -Wunreachable-code -Wno-switch-default -Wreturn-type -Wmultichar -Wformat-security \
                    -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated -Wempty-body \
                    -Wshift-negative-value -Wstack-usage=2048 -Wno-unused-value -std=gnu99
-CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS)
-LDFLAGS         ?= -lm
+CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS) \
+				   -I${STAGING_DIR}/target/usr/include \
+				   -I${STAGING_DIR}/target/usr/include/allwinner \
+				   -I${STAGING_DIR}/target/usr/include/allwinner/include
+LDFLAGS         ?= -lm -L${STAGING_DIR}/target/usr/lib \
+				   -ltrecorder -ltplayer -lxplayer -lvdecoder -ladecoder -lsubdecoder \
+				   -lcdc_base -lVE -lMemAdapter -lcdx_parser  -lcdx_playback \
+				   -lcdx_stream -lcdx_base -lawrecorder -lvencoder -laencoder \
+				   -lcdx_muxer -ljpegdecode  -ltmetadataretriever -lcdx_common \
+				   -luapi #-L{STAGING_DIR}/target/usr/lib -lfreetype
 
 BIN             = lv_apps
 BUILD_DIR       = ./build
 BUILD_OBJ_DIR   = $(BUILD_DIR)/obj
 BUILD_BIN_DIR   = $(BUILD_DIR)/bin
-STAGING_DIR     = $(BUILD_DIR)/staging
-export STAGING_DIR
 
 prefix          ?= /usr
 bindir          ?= $(prefix)/bin
@@ -35,7 +43,7 @@ CXXSRCS         := $(shell find src -type f -name '*.cpp')
 
 # Include LVGL sources
 include $(LVGL_DIR)/lvgl/lvgl.mk
-include $(LVGL_DIR)/lv_freetype/lv_freetype.mk
+# include $(LVGL_DIR)/lv_freetype/lv_freetype.mk
 include $(LVGL_DIR)/page/page.mk
 
 #Do not compile the example

@@ -7,9 +7,8 @@
 #include <stdlib.h>
 
 #include "lvgl/demos/lv_demos.h"
-
+#include "src/middle_ware/player_int.h"
 #include "main_page.h"
-
 
 #include "picture/bakp.c"
 #include "picture/Activity.c"
@@ -75,16 +74,28 @@ static void bg_pic(lv_obj_t *bg_obj);
 void layer2_style(lv_obj_t *obj);
 
 static void play_wav_by_aplay(const char *filename) {
-    char cmd[256];
-    snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename);  // 加 & 可背景播放
-    system(cmd);
+    // char cmd[256];
+    // snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename);  // 加 & 可背景播放
+    // system(cmd);
+    if (tplayer_play_url(filename) < 0) {
+        printf("Failed to play video: %s\n", filename);
+    } else {
+        printf("Playing video: %s\n", filename);
+        tplayer_play();
+    }
 }
 
 static void play_mp4_by_aplay(const char *filename)
 {
-    char cmd[256];
-    snprintf(cmd, sizeof(cmd), "player -l -r270 '%s'", filename);
-    system(cmd);
+    // char cmd[256];
+    // snprintf(cmd, sizeof(cmd), "player -l -r270 '%s'", filename);
+    // system(cmd);
+    if (tplayer_play_url(filename) < 0) {
+        printf("Failed to play video: %s\n", filename);
+    } else {
+        printf("Playing video: %s\n", filename);
+        tplayer_play();
+    }
 }
 
 static void event_handler(lv_event_t *e)
@@ -98,7 +109,6 @@ static void event_handler(lv_event_t *e)
 
         if (btn_tar == origin_btn)
         {
-            // player_play(FILE_MP4);
             play_mp4_by_aplay(FILE_MP4);
             // origin_page();
             // lv_scr_load_anim(origin_page_bg, LV_SCR_LOAD_ANIM_OVER_LEFT, 100, 0, false);
@@ -479,7 +489,6 @@ void page_loop2(void)
     //     die("Failed to load font yayuan.ttf with size 16\n");
     // }
 
-    // player_play(FILE_WAV);
     // play_wav_by_aplay(FILE_WAV);
 
     mian_page();
