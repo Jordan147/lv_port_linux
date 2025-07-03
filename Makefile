@@ -24,10 +24,11 @@ CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS) \
 				   -I${STAGING_DIR}/target/usr/include/allwinner/include
 LDFLAGS         ?= -lm -L${STAGING_DIR}/target/usr/lib \
 				   -ltrecorder -ltplayer -lxplayer -lvdecoder -ladecoder -lsubdecoder \
-				   -lcdc_base -lVE -lMemAdapter -lcdx_parser  -lcdx_playback \
-				   -lcdx_stream -lcdx_base -lawrecorder -lvencoder -laencoder \
-				   -lcdx_muxer -ljpegdecode  -ltmetadataretriever -lcdx_common \
-				   -luapi #-L{STAGING_DIR}/target/usr/lib -lfreetype
+				   -lcdc_base -lVE -lMemAdapter -lcdx_parser  -lcdx_playback -lcdx_stream \
+				   -lcdx_base -lawrecorder -lvencoder -laencoder -lcdx_muxer -ljpegdecode \
+				   -ltmetadataretriever -lcdx_common -luapi -lz -lssl -lasound -lsbm \
+				   -laftertreatment -lscaledown -lfbm -lvideoengine -lcrypto -lawrecorder \
+				   -lvenc_h264 -lvenc_h265 -lvenc_common -lvenc_jpeg -lvenc_base #-lfreetype
 
 BIN             = lv_apps
 BUILD_DIR       = ./build

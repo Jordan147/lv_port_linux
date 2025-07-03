@@ -474,6 +474,17 @@ static void lottery_page()
 
 void page_loop2(void)
 {
+    if (tplayer_init(TPLAYER_VIDEO_ROTATE_DEGREE_90) < 0)
+    {
+        printf("tplayer init failed\n");
+        return;
+    }
+
+    if (tplayer_setvolume(100) < 0)
+    {
+        printf("set volume failed\n");
+        return;
+    }
     // font_small = lv_freetype_font_create("./yayuan.ttf",
     //                                      LV_FREETYPE_FONT_RENDER_MODE_OUTLINE, //LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
     //                                      12,
