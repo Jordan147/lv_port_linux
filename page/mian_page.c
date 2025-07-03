@@ -6,7 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// #define CEDARC_DEBUG    0
+// #define USE_EXT_FONT    1
+
 #include "lvgl/demos/lv_demos.h"
+#include "freetype/lv_freetype.h"
 #include "src/middle_ware/player_int.h"
 #include "main_page.h"
 
@@ -44,11 +48,13 @@ static lv_obj_t *Activity_btn;
 static lv_obj_t *menu_btn;
 static lv_obj_t *lottery_btn;
 static lv_obj_t *home_btn;
-static lv_obj_t *next_btn;
-static lv_obj_t *prev_btn;
+// static lv_obj_t *next_btn;
+// static lv_obj_t *prev_btn;
 
+#if USE_EXT_FONT
 static const lv_font_t *font_small;
 static const lv_font_t *font_large;
+#endif
 
 #define FILE_MP3 "/root/media/1-dream.mp3"
 #define FILE_WAV "/root/media/2-chess.mp3"
@@ -241,7 +247,9 @@ static lv_obj_t *create_shop_item(lv_obj_t *parent, const void *img_src, const c
     static int32_t grid_row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
 
     lv_style_init(&style_text_muted);
+#if USE_EXT_FONT
     lv_style_set_text_font(&style_text_muted, font_small);
+#endif
     lv_style_set_text_opa(&style_text_muted, LV_OPA_50);
 
     cont = lv_obj_create(parent);
@@ -320,19 +328,21 @@ static void menu_page()
     // lv_obj_add_flag(list, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
 
     LV_IMAGE_DECLARE(item_100);
-    // create_shop_item(list, &item_100, "set menu", "Clothes", "$722");
-    // create_shop_item(list, &item_100, "set menu", "Clothes", "$411");
-    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
-    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
-    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
-    // create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+#if USE_EXT_FONT
     create_shop_item(list, &item_100, "套餐", "衣服", "$722");
     create_shop_item(list, &item_100, "套餐", "衣服", "$411");
     create_shop_item(list, &item_100, "套餐", "衣服", "$917");
     create_shop_item(list, &item_100, "套餐", "衣服", "$917");
     create_shop_item(list, &item_100, "套餐", "衣服", "$917");
     create_shop_item(list, &item_100, "套餐", "衣服", "$917");
-
+#else
+    create_shop_item(list, &item_100, "set menu", "Clothes", "$722");
+    create_shop_item(list, &item_100, "set menu", "Clothes", "$411");
+    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+    create_shop_item(list, &item_100, "set menu", "Clothes", "$917");
+#endif
     /*****第二層 選單 對其 menu**** */
 
     lv_obj_align_to(parent, cont_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
@@ -485,20 +495,58 @@ void page_loop2(void)
         printf("set volume failed\n");
         return;
     }
-    // font_small = lv_freetype_font_create("./yayuan.ttf",
-    //                                      LV_FREETYPE_FONT_RENDER_MODE_OUTLINE, //LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
-    //                                      12,
-    //                                      LV_FREETYPE_FONT_STYLE_NORMAL);
-    // if (font_small == NULL) {
-    //     die("Failed to load font yayuan.ttf with size 12\n");
-    // }
-    // font_large = lv_freetype_font_create("./yayuan.ttf",
-    //                                      LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
-    //                                      16,
-    //                                      LV_FREETYPE_FONT_STYLE_NORMAL);
-    // if (font_large == NULL) {
-    //     die("Failed to load font yayuan.ttf with size 16\n");
-    // }
+
+#if USE_EXT_FONT
+    // Initialize the FreeType font library
+    if (lv_freetype_init() != LV_FREETYPE_INIT_SUCCESS) {
+        LV_LOG_ERROR("freetype init failed.");
+        return;
+    }
+
+    // Load the font with FreeType
+    // #if 0
+    //     font_small = lv_freetype_font_create("./lvgl/examples/libs/freetype/Lato-Regular.ttf",
+    //                                          LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+    //                                          12,
+    //                                          LV_FREETYPE_FONT_STYLE_NORMAL);
+    //     font_large = lv_freetype_font_create("./lvgl/examples/libs/freetype/Lato-Regular.ttf",
+    //                                          LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+    //                                          16,
+    //                                          LV_FREETYPE_FONT_STYLE_NORMAL);
+    // #else
+    //     font_small = lv_freetype_font_create("./yayuan.ttf",
+    //                                          LV_FREETYPE_FONT_RENDER_MODE_OUTLINE, //LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+    //                                          12,
+    //                                          LV_FREETYPE_FONT_STYLE_NORMAL);
+    //     if (font_small == NULL) {
+    //         die("Failed to load font yayuan.ttf with size 12\n");
+    //     }
+    //     font_large = lv_freetype_font_create("./yayuan.ttf",
+    //                                          LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+    //                                          16,
+    //                                          LV_FREETYPE_FONT_STYLE_NORMAL);
+    //     if (font_large == NULL) {
+    //         die("Failed to load font yayuan.ttf with size 16\n");
+    //     }
+    // #endif
+#if 1
+    lv_font_t * font = lv_freetype_font_create("./lvgl/examples/libs/freetype/Lato-Regular.ttf",
+                                               LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+                                               20,
+                                               LV_FREETYPE_FONT_STYLE_NORMAL);
+#else
+    lv_font_t * font = lv_freetype_font_create("D:/100ask/freetype/SourceHanSansCN-Bold-2.otf",
+                                               LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+                                               100,
+                                               LV_FREETYPE_FONT_STYLE_NORMAL);
+#endif
+
+    if(!font) {
+        LV_LOG_ERROR("freetype font create failed.");
+        return;
+    }
+
+#endif
 
     // play_wav_by_aplay(FILE_WAV);
 

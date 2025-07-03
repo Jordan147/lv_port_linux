@@ -18,7 +18,7 @@ WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qu
                    -Wsizeof-pointer-memaccess -Wno-format-nonliteral -Wno-cast-qual -Wunreachable-code -Wno-switch-default -Wreturn-type -Wmultichar -Wformat-security \
                    -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated -Wempty-body \
                    -Wshift-negative-value -Wstack-usage=2048 -Wno-unused-value -std=gnu99
-CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ $(WARNINGS) \
+CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ -I$(LVGL_DIR)/$(LVGL_DIR_NAME)/src/libs $(WARNINGS) \
 				   -I${STAGING_DIR}/target/usr/include \
 				   -I${STAGING_DIR}/target/usr/include/allwinner \
 				   -I${STAGING_DIR}/target/usr/include/allwinner/include
@@ -28,7 +28,8 @@ LDFLAGS         ?= -lm -L${STAGING_DIR}/target/usr/lib \
 				   -lcdx_base -lawrecorder -lvencoder -laencoder -lcdx_muxer -ljpegdecode \
 				   -ltmetadataretriever -lcdx_common -luapi -lz -lssl -lasound -lsbm \
 				   -laftertreatment -lscaledown -lfbm -lvideoengine -lcrypto -lawrecorder \
-				   -lvenc_h264 -lvenc_h265 -lvenc_common -lvenc_jpeg -lvenc_base #-lfreetype
+				   -lvenc_h264 -lvenc_h265 -lvenc_common -lvenc_jpeg -lvenc_base #-lfreetype \
+				   #-lbz2
 
 BIN             = lv_apps
 BUILD_DIR       = ./build
