@@ -31,7 +31,7 @@ LDFLAGS         ?= -lm -L${STAGING_DIR}/target/usr/lib \
 				   -lvenc_h264 -lvenc_h265 -lvenc_common -lvenc_jpeg -lvenc_base #-lfreetype \
 				   #-lbz2
 
-BIN             = lv_apps
+BIN             = ezkit
 BUILD_DIR       = ./build
 BUILD_OBJ_DIR   = $(BUILD_DIR)/obj
 BUILD_BIN_DIR   = $(BUILD_DIR)/bin
@@ -47,6 +47,8 @@ CXXSRCS         := $(shell find src -type f -name '*.cpp')
 include $(LVGL_DIR)/lvgl/lvgl.mk
 # include $(LVGL_DIR)/lv_freetype/lv_freetype.mk
 include $(LVGL_DIR)/page/page.mk
+include $(LVGL_DIR)/picture/picture.mk
+include $(LVGL_DIR)/font/font.mk
 
 #Do not compile the example
 EXCSRCS			+= $(shell find -L $(LVGL_DIR)/$(LVGL_DIR_NAME)/examples -name \*.c)

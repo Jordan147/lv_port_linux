@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "simulator_settings.h": "c"
+        "simulator_settings.h": "c",
+        "stdlib.h": "c",
+        "menu_page.h": "c"
     }
 }

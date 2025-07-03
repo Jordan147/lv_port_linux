@@ -6,28 +6,15 @@ extern "C"
 {
 #endif
 
-    /*********************
-     *      INCLUDES
-     *********************/
-// #include "lv_100ask_lesson_demos/lv_100ask_lesson_demos.h"
 #include "lvgl/demos/lv_demos.h"
 
-    /*********************
-     *      DEFINES
-     *********************/
+#define CEDARC_DEBUG    0
 
-    /**********************
-     *      TYPEDEFS
-     **********************/
-
-    /**********************
-     * GLOBAL PROTOTYPES
-     **********************/
-    void page_loop2(void);
-
-    /**********************
-     *      MACROS
-     **********************/
+void page_loop2(void);
+void btn_pic_init(lv_obj_t *btn, const void *img_src);
+void btn_sty(int32_t w, int32_t h, lv_obj_t * btn);
+void play_wav_by_aplay(const char * filename);
+void play_mp4_by_aplay(const char * filename);
 
 #ifdef __cplusplus
 } /* extern "C" */
