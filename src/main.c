@@ -30,7 +30,15 @@
 #include "src/lib/simulator_util.h"
 #include "src/lib/simulator_settings.h"
 
+#include "gpiolib.h"
 #include "page/main_page.h"
+
+#define PIN_NO(port, line)      (((port) - 'A') * 0x20 + (line))
+#define GPIO_KEY_PIN            PIN_NO('G', 8)
+#define GPIO_LED_PIN            PIN_NO('G', 7)
+#define KEY_DEBOUNCE_INTERVAL   50      // ms
+#define TICK_PERIOD             5       // ms
+#define LED_FLASH_INTERVAL      1000    // ms
 
 /* Internal functions */
 static void configure_simulator(int argc, char **argv);
@@ -134,6 +142,13 @@ int main(int argc, char **argv)
 {
     configure_simulator(argc, argv);
 
+    gpio_export(GPIO_LED_PIN);
+    gpio_direction(GPIO_LED_PIN, 1); // Set as output for LED
+
+    gpio_export(GPIO_KEY_PIN);
+    gpio_direction(GPIO_KEY_PIN, 0); // Set as input for key
+    gpio_setedge(GPIO_KEY_PIN, 1, 0);
+
     /* Initialize LVGL. */
     lv_init();
 
@@ -159,9 +174,9 @@ int main(int argc, char **argv)
     lv_demo_widgets_start_slideshow();
 #endif
 
-    page_loop2();
-
     lv_display_set_rotation(NULL,LV_DISPLAY_ROTATION_90);
+
+    page_loop2();
 
     /* Enter the run loop of the selected backend */
     driver_backends_run_loop();

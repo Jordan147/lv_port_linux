@@ -6,16 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "lvgl/demos/lv_demos.h"
+#include "lvgl/lvgl.h"
 #include "main_page.h"
 #include "menu_page.h"
 #include "order_checout.h"
 
-extern const lv_font_t lv_jf_16;
-LV_FONT_DECLARE(lv_jf_16);
+#define ITEM_NUM 12 // 所有菜單的數量
 
 static lv_obj_t *list1;
-static lv_obj_t *list2;
 static lv_obj_t *list3;
 static lv_obj_t *back_btn;
 static lv_obj_t *cut_btn;
@@ -28,32 +26,45 @@ static lv_obj_t *SF_btn;
 static lv_obj_t *bell_btn;
 static lv_obj_t *bill_btn;
 
-int item_index_num = 9;
-uint32_t cur_menu_index;
+static lv_obj_t *D_list;
+static lv_obj_t *SD_list;
+static lv_obj_t *SF_list;
+static lv_obj_t *order_list;
+
+static lv_obj_t *order_label;
+
 int order_count = 0;
-int order_item_id = 0;
-bool item_sel = false;
+float order_total = 0;
+int cur_item_index;
 
 int menu_dis_num = M_SF_LIST;
 int last_menu_dis_num = M_SF_LIST;
+int order_check_num = O_IDLE;
 
-LV_IMAGE_DECLARE(D_item0001);
-LV_IMAGE_DECLARE(D_item0002);
-LV_IMAGE_DECLARE(D_item0003);
-LV_IMAGE_DECLARE(SD_item0001);
-LV_IMAGE_DECLARE(SD_item0002);
-LV_IMAGE_DECLARE(SD_item0003);
-LV_IMAGE_DECLARE(SD_item0004);
-LV_IMAGE_DECLARE(SF_item0001);
-LV_IMAGE_DECLARE(SF_item0002);
-LV_IMAGE_DECLARE(Drink);
-LV_IMAGE_DECLARE(Side_Dishes);
-LV_IMAGE_DECLARE(Staple_Food);
-LV_IMAGE_DECLARE(bell);
-LV_IMAGE_DECLARE(bill);
+LV_IMG_DECLARE(D_item0001);
+LV_IMG_DECLARE(D_item0002);
+LV_IMG_DECLARE(D_item0003);
+LV_IMG_DECLARE(D_item0004);
+LV_IMG_DECLARE(SD_item0001);
+LV_IMG_DECLARE(SD_item0002);
+LV_IMG_DECLARE(SD_item0003);
+LV_IMG_DECLARE(SD_item0004);
+LV_IMG_DECLARE(SF_item0001);
+LV_IMG_DECLARE(SF_item0002);
+LV_IMG_DECLARE(SF_item0003);
+LV_IMG_DECLARE(SF_item0004);
+LV_IMG_DECLARE(Drink);
+LV_IMG_DECLARE(Side_Dishes);
+LV_IMG_DECLARE(Staple_Food);
+LV_IMG_DECLARE(bell);
+LV_IMG_DECLARE(bill);
 
 static void menu_list_event(lv_event_t *e);
 static void menu_order_event(lv_event_t *e);
+
+/**********************
+ *  STYLE
+ **********************/
 
 static lv_style_t bg_opa_100;
 static lv_style_t bg_opa_0;
@@ -77,6 +88,10 @@ void shop_item_style()
     lv_style_set_bg_color(&shop_cir_btn, lv_color_hex(0x343839));
     lv_style_set_radius(&shop_cir_btn, LV_RADIUS_CIRCLE);
 }
+
+/**********************
+ *  STATIC VARIABLES
+ **********************/
 
 static lv_obj_t *create_shop_item(lv_obj_t *parent, const void *img_src, const char *name, const char *category,
                                   float price, int index)
@@ -133,8 +148,6 @@ static lv_obj_t *create_shop_item(lv_obj_t *parent, const void *img_src, const c
     return gird_cont;
 }
 
-float order_total = 0;
-
 static lv_obj_t *create_order_item(lv_obj_t *parent, int index)
 {
     char tmp1[30];
@@ -178,17 +191,6 @@ static lv_obj_t *create_order_item(lv_obj_t *parent, int index)
     lv_label_set_text(label, tmp4);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
 
-    // lv_obj_t *add_btn = lv_button_create(gird_cont);
-    // lv_obj_set_size(add_btn, 60, 30);
-    // label = lv_label_create(add_btn);
-    // lv_obj_add_style(add_btn, &shop_cir_btn, LV_PART_MAIN);
-    // lv_obj_set_style_text_font(label, &lv_jf_16, 0);
-    // lv_label_set_text(label, "結帳");
-    // lv_obj_set_grid_cell(add_btn, LV_GRID_ALIGN_START, 0, 4, LV_GRID_ALIGN_CENTER, 2, 1);
-    // lv_obj_center(add_btn);
-    // // lv_obj_add_flag(add_btn, LV_OBJ_FLAG_EVENT_BUBBLE);
-    // // lv_obj_add_event_cb(add_btn, menu_list_event, LV_EVENT_PRESSED, index);
-
     lv_obj_add_style(obj, &bg_opa_100, LV_PART_MAIN);
     order_total = order_total + order_item[index].price * order_item[index].quantity;
 
@@ -227,17 +229,11 @@ static lv_obj_t *create_order_total(lv_obj_t *parent)
     return gird_cont;
 }
 
-static lv_obj_t *order_label;
-
 void menu_item_num(lv_obj_t *parent)
 {
     lv_obj_set_style_text_font(order_label, &lv_jf_16, 0);
     lv_label_set_text_fmt(order_label, "%" LV_PRIu32, order_count);
 }
-static lv_obj_t *D_list;
-static lv_obj_t *SD_list;
-static lv_obj_t *SF_list;
-static lv_obj_t *order_list;
 
 void m_D_page(lv_obj_t *parent)
 {
@@ -251,6 +247,7 @@ void m_D_page(lv_obj_t *parent)
     create_shop_item(D_list, &D_item0001, "可樂", "描述", 25, 0);
     create_shop_item(D_list, &D_item0002, "奶茶", "描述", 25, 1);
     create_shop_item(D_list, &D_item0003, "綠茶", "描述", 25, 2);
+    create_shop_item(D_list, &D_item0003, "綠茶", "描述", 25, 3);
 }
 
 void m_SD_page(lv_obj_t *parent)
@@ -262,10 +259,10 @@ void m_SD_page(lv_obj_t *parent)
 
     lv_obj_add_style(SD_list, &bg_opa_0, LV_PART_MAIN); // 矩形背景部分
 
-    create_shop_item(SD_list, &SD_item0001, "雞腿", "描述", 60, 3);
-    create_shop_item(SD_list, &SD_item0002, "滷蛋", "描述", 15, 4);
-    create_shop_item(SD_list, &SD_item0003, "小菜", "描述", 40, 5);
-    create_shop_item(SD_list, &SD_item0004, "薯條", "描述", 60, 6);
+    create_shop_item(SD_list, &SD_item0001, "雞腿", "描述", 60, 4);
+    create_shop_item(SD_list, &SD_item0002, "滷蛋", "描述", 15, 5);
+    create_shop_item(SD_list, &SD_item0003, "小菜", "描述", 40, 6);
+    create_shop_item(SD_list, &SD_item0004, "薯條", "描述", 60, 7);
 }
 
 void m_SF_page(lv_obj_t *parent)
@@ -277,8 +274,10 @@ void m_SF_page(lv_obj_t *parent)
 
     lv_obj_add_style(SF_list, &bg_opa_0, LV_PART_MAIN); // 矩形背景部分
 
-    create_shop_item(SF_list, &SF_item0001, "小滷肉飯", "描述", 35, 7);
-    create_shop_item(SF_list, &SF_item0002, "滷肉麵", "描述", 60, 8);
+    create_shop_item(SF_list, &SF_item0001, "小滷肉飯", "描述", 35, 8);
+    create_shop_item(SF_list, &SF_item0002, "滷肉麵", "描述", 60, 9);
+    create_shop_item(SF_list, &SF_item0003, "滷肉麵", "描述", 60, 10);
+    create_shop_item(SF_list, &SF_item0004, "滷肉麵", "描述", 60, 11);
 }
 
 void m_item_page(lv_obj_t *parent)
@@ -307,17 +306,17 @@ void m_item_page(lv_obj_t *parent)
     lv_obj_add_event_cb(back_btn, menu_list_event, LV_EVENT_PRESSED, 0);
 
     lv_obj_t *img = lv_image_create(gird_cont);
-    lv_image_set_src(img, menu_item[cur_menu_index].img_src);
+    lv_image_set_src(img, menu_item[cur_item_index].img_src);
     lv_obj_set_grid_cell(img, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_START, 0, 1);
 
     lv_obj_t *label = lv_label_create(gird_cont);
     lv_obj_set_style_text_font(label, &lv_jf_16, 0);
-    lv_label_set_text(label, menu_item[cur_menu_index].name);
+    lv_label_set_text(label, menu_item[cur_item_index].name);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 0, 4, LV_GRID_ALIGN_START, 1, 1);
 
     label = lv_label_create(gird_cont);
     lv_obj_set_style_text_font(label, &lv_jf_16, 0);
-    sprintf(tmp, "$%.0f", menu_item[cur_menu_index].price);
+    sprintf(tmp, "$%.0f", menu_item[cur_item_index].price);
     lv_label_set_text(label, tmp);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 0, 4, LV_GRID_ALIGN_START, 2, 1);
 
@@ -327,7 +326,7 @@ void m_item_page(lv_obj_t *parent)
     lv_obj_add_style(cut_btn, &shop_cir_btn, LV_PART_MAIN);
     lv_obj_set_grid_cell(cut_btn, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 4, 1);
     lv_obj_add_flag(cut_btn, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_add_event_cb(cut_btn, menu_order_event, LV_EVENT_PRESSED, cur_menu_index);
+    lv_obj_add_event_cb(cut_btn, menu_order_event, LV_EVENT_PRESSED, cur_item_index);
 
     // lv_obj_t *order_cont = lv_obj_create(gird_cont);
     order_label = lv_label_create(gird_cont);
@@ -340,7 +339,7 @@ void m_item_page(lv_obj_t *parent)
     lv_obj_add_style(add_btn, &shop_cir_btn, LV_PART_MAIN);
     lv_obj_set_grid_cell(add_btn, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 4, 1);
     lv_obj_add_flag(add_btn, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_add_event_cb(add_btn, menu_order_event, LV_EVENT_PRESSED, cur_menu_index);
+    lv_obj_add_event_cb(add_btn, menu_order_event, LV_EVENT_PRESSED, cur_item_index);
 
     ok_btn = lv_button_create(gird_cont);
     lv_obj_set_size(ok_btn, 20, 20);
@@ -348,7 +347,7 @@ void m_item_page(lv_obj_t *parent)
     lv_obj_add_style(ok_btn, &shop_cir_btn, LV_PART_MAIN);
     lv_obj_set_grid_cell(ok_btn, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 5, 1);
     lv_obj_add_flag(ok_btn, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_add_event_cb(ok_btn, menu_order_event, LV_EVENT_PRESSED, cur_menu_index);
+    lv_obj_add_event_cb(ok_btn, menu_order_event, LV_EVENT_PRESSED, cur_item_index);
 }
 
 void m_bill_page(lv_obj_t *parent)
@@ -362,7 +361,7 @@ void m_bill_page(lv_obj_t *parent)
 
     if (orderCount > 0)
     {
-        for (int i = 0; i < item_index_num; i++)
+        for (int i = 0; i < ITEM_NUM; i++)
         {
             LV_LOG_USER("i : %d\n", i);
             for (int j = 0; j < orderCount; j++)
@@ -419,7 +418,7 @@ static void menu_list_event(lv_event_t *e)
         {
             m_dis_last_sel();
 
-            cur_menu_index = index;
+            cur_item_index = index;
 
             if (orderCount > 0)
             {
@@ -427,7 +426,7 @@ static void menu_list_event(lv_event_t *e)
                 {
                     LV_LOG_USER("i : %d\n", i);
                     LV_LOG_USER("orderCount : %d\n", orderCount);
-                    if (menu_item[cur_menu_index].id == order_item[i].menu_id)
+                    if (menu_item[cur_item_index].id == order_item[i].menu_id)
                     {
                         order_count = order_item[i].quantity;
                         break;
@@ -445,8 +444,6 @@ static void menu_list_event(lv_event_t *e)
     }
 }
 
-int order_check_num = O_IDLE;
-
 void order_item_check(int32_t index)
 {
     int count = 0;
@@ -457,9 +454,9 @@ void order_item_check(int32_t index)
         {
         case O_IDLE:
         {
-            if (count < cur_menu_index)
+            if (count < cur_item_index)
             {
-                if (menu_item[cur_menu_index].id == order_item[count].menu_id)
+                if (menu_item[cur_item_index].id == order_item[count].menu_id)
                 {
                     LV_LOG_USER("old_item\n");
                     order_check_num = O_OLD_ORDER;
@@ -476,7 +473,7 @@ void order_item_check(int32_t index)
 
         case O_IDLE2:
         {
-            if (count < cur_menu_index)
+            if (count < cur_item_index)
             {
                 LV_LOG_USER("O_IDLE2\n");
                 order_check_num = O_IDLE;
@@ -491,7 +488,7 @@ void order_item_check(int32_t index)
 
         case O_NEW_ORDER:
         {
-            order_item[orderCount].menu_id = menu_item[cur_menu_index].id;
+            order_item[orderCount].menu_id = menu_item[cur_item_index].id;
             order_item[orderCount].id = orderCount + 1;
             strcpy(order_item[orderCount].name, menu_item[index].name);
             order_item[orderCount].price = menu_item[index].price;
@@ -538,6 +535,7 @@ static void menu_order_event(lv_event_t *e)
             lv_obj_clean(order_label);
             menu_item_num(order_label);
         }
+
         else if (btn_tar == add_btn)
         {
             order_count++;
@@ -570,6 +568,7 @@ void top_menu_event(lv_event_t *e)
             last_menu_dis_num = M_D_LIST;
             menu_display(list1);
         }
+        
         else if (btn_tar == SD_btn)
         {
             LV_LOG_USER("SD_btn");
@@ -604,30 +603,22 @@ void top_menu_event(lv_event_t *e)
     }
 }
 
-void top_menu_btn(lv_obj_t *btn, const void *img_src)
-{
-    lv_obj_set_style_bg_image_src(btn, img_src, 0);
-    btn_sty(60, 60, btn);
-    lv_obj_add_flag(btn, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_add_event_cb(btn, top_menu_event, LV_EVENT_PRESSED, 0);
-}
-
 void top_menu(lv_obj_t *parent)
 {
-    D_btn = lv_button_create(parent);
-    top_menu_btn(D_btn, &Drink);
+     D_btn = lv_button_create(parent);
+    btn_pic(D_btn, &Drink, top_menu_event);
 
     SD_btn = lv_button_create(parent);
-    top_menu_btn(SD_btn, &Side_Dishes);
+    btn_pic(SD_btn, &Side_Dishes, top_menu_event);
 
     SF_btn = lv_button_create(parent);
-    top_menu_btn(SF_btn, &Staple_Food);
+    btn_pic(SF_btn, &Staple_Food, top_menu_event);
 
     bell_btn = lv_button_create(parent);
-    top_menu_btn(bell_btn, &bell);
+    btn_pic(bell_btn, &bell, top_menu_event);
 
     bill_btn = lv_button_create(parent);
-    top_menu_btn(bill_btn, &bill);
+    btn_pic(bill_btn, &bill, top_menu_event);
 }
 
 void menu_display(lv_obj_t *parent)

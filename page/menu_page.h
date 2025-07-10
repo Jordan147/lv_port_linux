@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "lvgl/demos/lv_demos.h"
+#include "lvgl/lvgl.h"
 
 enum MENU_DIS_CHANGE
 {
@@ -29,7 +29,6 @@ enum ORDER_CHECK
 
 void menu_list(lv_obj_t *parent);
 void top_menu(lv_obj_t *parent);
-void shop_item_style(void);
 
 #ifdef __cplusplus
 } /* extern "C" */

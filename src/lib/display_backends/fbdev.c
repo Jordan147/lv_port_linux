@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../gpiolib.h"
 #include "lvgl/lvgl.h"
 #if LV_USE_LINUX_FBDEV
 #include "../simulator_util.h"
@@ -97,12 +98,21 @@ static lv_display_t *init_fbdev(void)
     return disp;
 }
 
+#define PIN_NO(port, line)      (((port) - 'A') * 0x20 + (line))
+#define GPIO_KEY_PIN            PIN_NO('G', 8)
+#define GPIO_LED_PIN            PIN_NO('G', 7)
+#define KEY_DEBOUNCE_INTERVAL   50      // ms
+#define TICK_PERIOD             5       // ms
+#define LED_FLASH_INTERVAL      1000    // ms
 /**
  * The run loop of the fbdev driver
  */
 static void run_loop_fbdev(void)
 {
     uint32_t idle_time;
+    static int led_flash_count = 0;
+    static bool led_state = false;
+
 
     /* Handle LVGL tasks */
     while (true) {
@@ -110,6 +120,21 @@ static void run_loop_fbdev(void)
         /* Returns the time to the next timer execution */
         idle_time = lv_timer_handler();
         usleep(idle_time * 1000);
+
+        if (!gpio_read(GPIO_KEY_PIN)) {
+            printf("Leave ezkit\n");
+            gpio_unexport(GPIO_LED_PIN);
+            gpio_unexport(GPIO_KEY_PIN);
+            lv_deinit();
+            exit(0);  
+        }
+
+        led_flash_count++;
+        if (led_flash_count >= LED_FLASH_INTERVAL / TICK_PERIOD) {
+            led_flash_count = 0;
+            led_state = !led_state;
+            gpio_write(GPIO_LED_PIN, led_state);
+        }
     }
 }
 
