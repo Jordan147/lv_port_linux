@@ -80,9 +80,12 @@ void layer2_style(lv_obj_t *obj)
 
 static void mian_page(void);
 static void Activity_page(void);
-static void menu_page();
+static void menu_page(void);
 static void lottery_page(void);
 static void setting_page(void);
+static void test3(lv_obj_t * parent);
+static void test4(lv_obj_t * parent);
+static void set_list(lv_obj_t * parent);
 
 void play_click_tone(void)
 {
@@ -91,9 +94,9 @@ void play_click_tone(void)
 
 void play_audio(const char *filename)
 {
-    char cmd[256];
-    snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename); // 加 & 可背景播放
-    system(cmd);
+    // char cmd[256];
+    // snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename); // 加 & 可背景播放
+    // system(cmd);
 }
 
 void play_video(const char *filename)
@@ -334,27 +337,27 @@ static void anim_size_cb(void *var, int32_t v)
 /**
  * Create a playback animation
  */
-void test3(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent);
-    lv_obj_set_style_bg_img_src(obj, &menu, 0);
-    lv_obj_align(obj, LV_ALIGN_TOP_MID, 10, 0);
+// void test3(lv_obj_t *parent)
+// {
+//     lv_obj_t *obj = lv_obj_create(parent);
+//     lv_obj_set_style_bg_img_src(obj, &menu, 0);
+//     lv_obj_align(obj, LV_ALIGN_TOP_MID, 10, 0);
 
-    lv_anim_t a;
-    lv_anim_init(&a);
-    lv_anim_set_var(&a, obj);                              // 綁定物件
-    lv_anim_set_values(&a, 10, 200);                       // 開始和結束值
-    lv_anim_set_duration(&a, 1000);                        // 動畫時長
-    lv_anim_set_repeat_delay(&a, 500);                     // 重複延遲
-    lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE); // 無限重複
-    lv_anim_set_path_cb(&a, lv_anim_path_linear);          // 設置動畫
-    lv_anim_set_exec_cb(&a, anim_y_cb);
+//     lv_anim_t a;
+//     lv_anim_init(&a);
+//     lv_anim_set_var(&a, obj);                              // 綁定物件
+//     lv_anim_set_values(&a, 10, 200);                       // 開始和結束值
+//     lv_anim_set_duration(&a, 1000);                        // 動畫時長
+//     lv_anim_set_repeat_delay(&a, 500);                     // 重複延遲
+//     lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE); // 無限重複
+//     lv_anim_set_path_cb(&a, lv_anim_path_linear);          // 設置動畫
+//     lv_anim_set_exec_cb(&a, anim_y_cb);
 
-    lv_anim_start(&a);
-}
+//     lv_anim_start(&a);
+// }
 
-static const int32_t obj_width = 60;
-static const int32_t obj_height = 60;
+// static const int32_t obj_width = 60;
+// static const int32_t obj_height = 60;
 static lv_anim_t a1;
 static lv_anim_t a2;
 
@@ -369,7 +372,7 @@ static void btn_start_event_handler(lv_event_t *e)
     lv_anim_timeline_start(anim_timeline);
 }
 
-void test4(lv_obj_t *parent)
+static void test4(lv_obj_t *parent)
 {
     /* Create anim timeline */
     lv_anim_timeline_t *anim_timeline = lv_anim_timeline_create();
@@ -542,7 +545,7 @@ static lv_obj_t *create_slider(lv_obj_t *parent, const char *icon, const char *t
     return obj;
 }
 
-void set_list(lv_obj_t *parent)
+static void set_list(lv_obj_t *parent)
 {
     //   LV_LOG_USER("list test 13456\n");
     // volume = tplayer_getvolume();
@@ -560,8 +563,8 @@ void set_list(lv_obj_t *parent)
     lv_label_set_text(back_button_label, "Back");
 
     lv_obj_t *cont;
-    lv_obj_t *label;
-    lv_obj_t *section;
+    // lv_obj_t *label;
+    // lv_obj_t *section;
 
     // /*****Create sub pages*****/
     lv_obj_t *sub_1_page = lv_menu_page_create(set_menu, NULL);

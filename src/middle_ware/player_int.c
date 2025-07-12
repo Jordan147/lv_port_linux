@@ -93,7 +93,7 @@ static int CallbackForTPlayer(void *pUserData, int msg, int param0,
     return 0;
 }
 
-int tplayer_init(TplayerVideoRotateType rotateDegree) {
+int tplayer_init(TplayerVideoRotateType rotate) {
     for (int i = 0; i < TUNNEL_NUM; i++) {
         /* * create a player. */
         gplayer[i].mTPlayer = TPlayerCreate(CEDARX_PLAYER);
@@ -115,7 +115,7 @@ int tplayer_init(TplayerVideoRotateType rotateDegree) {
         sem_init(&gplayer[i].mPreparedSem, 0, 0);
         TPlayerReset(gplayer[i].mTPlayer);
         TPlayerSetDebugFlag(gplayer[i].mTPlayer, 0);
-        TPlayerSetRotate(gplayer[i].mTPlayer, rotateDegree);
+        TPlayerSetRotate(gplayer[i].mTPlayer, rotate);
     }
     return 0;
 }

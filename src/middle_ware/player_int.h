@@ -38,7 +38,7 @@ typedef struct PLAYER_CONTEXT_T {
     sem_t mPreparedSem;
 } player_context_t;
 
-int tplayer_init(TplayerVideoRotateType rotateDegree);
+int tplayer_init(TplayerVideoRotateType rotate);
 int tplayer_exit(void);
 int tplayer_play_url(int id, const char *parth);
 int tplayer_play(int id);
