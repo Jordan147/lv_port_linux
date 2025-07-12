@@ -130,7 +130,7 @@ static void run_loop_fbdev(void)
         }
 
         led_flash_count++;
-        if (led_flash_count >= LED_FLASH_INTERVAL / TICK_PERIOD) {
+        if (led_flash_count >= LED_FLASH_INTERVAL / idle_time) {
             led_flash_count = 0;
             led_state = !led_state;
             gpio_write(GPIO_LED_PIN, led_state);

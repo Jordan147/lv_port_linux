@@ -172,8 +172,7 @@ int tplayer_play(void) {
     return TPlayerStart(player_context.mTPlayer);
 }
 int tplayer_setvolume(int volume) {
-    TPlayerSetVolume(player_context.mTPlayer, volume);
-    return 0;
+    return TPlayerSetVolume(player_context.mTPlayer, volume);
 }
 int tplayer_getvolume() {
     return TPlayerGetVolume(player_context.mTPlayer);

@@ -32,6 +32,8 @@ static lv_obj_t *lottery_btn;
 static lv_obj_t *home_btn;
 static lv_obj_t *set_btn;
 
+int volume;
+
 LV_IMAGE_DECLARE(bakp);
 LV_IMAGE_DECLARE(home);
 LV_IMAGE_DECLARE(Activity);
@@ -107,7 +109,6 @@ static void event_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t *btn_tar = lv_event_get_target(e);
-    int volume;
 
     if (code == LV_EVENT_PRESSED)
     {
@@ -489,10 +490,21 @@ static lv_obj_t *create_text(lv_obj_t *parent, const char *icon, const char *txt
 static void slider_event_cb(lv_event_t *e)
 {
     lv_obj_t *slider = lv_event_get_target(e);
+    int slider_value = lv_slider_get_value(slider);
     char buf[8];
-    lv_snprintf(buf, sizeof(buf), "%d%%", (int)lv_slider_get_value(slider));
+    lv_snprintf(buf, sizeof(buf), "%d%%", slider_value);
     lv_label_set_text(slider_label, buf);
     lv_obj_align_to(slider_label, slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+
+    if (tplayer_setvolume(slider_value) < 0)
+    {
+        LV_LOG_ERROR("Failed to set volume: %d\n", slider_value);
+        return;
+    }
+    LV_LOG_USER("slider_value:%d\n", slider_value);
+
+    volume = tplayer_getvolume();
+    LV_LOG_USER("volume:%d\n", volume);
 }
 
 static lv_obj_t *create_slider(lv_obj_t *parent, const char *icon, const char *txt, int32_t min, int32_t max,   int32_t val)
@@ -524,7 +536,6 @@ static lv_obj_t *create_slider(lv_obj_t *parent, const char *icon, const char *t
 
 void set_list(lv_obj_t *parent)
 {
-    // int volume;
     //   LV_LOG_USER("list test 13456\n");
     // volume = tplayer_getvolume();
     //   LV_LOG_USER("volume:%d\n",volume);
@@ -548,7 +559,7 @@ void set_list(lv_obj_t *parent)
     lv_obj_t *sub_1_page = lv_menu_page_create(set_menu, NULL);
     // section = lv_menu_section_create(sub_1_page);
     // cont = create_slider(sub_1_page, LV_SYMBOL_AUDIO, "volume", 0, 100, 50);
-    // cont = create_slider(sub_1_page, LV_SYMBOL_AUDIO, "volume", 0, 100, volume);
+    cont = create_slider(sub_1_page, LV_SYMBOL_AUDIO, "volume", 0, 40, volume);
 
     // /*****Create a main page*****/
     lv_obj_t *main_page = lv_menu_page_create(set_menu, NULL);
@@ -612,9 +623,6 @@ static void setting_page()
 
 void page_loop2(void)
 {
-    
-    int volume;
-
     tplayer_init(LV_DISPLAY_ROTATION_90);
     LV_LOG_USER("LVGL START!!!\n");
     volume = tplayer_getvolume();
