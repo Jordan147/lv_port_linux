@@ -43,9 +43,9 @@ LV_IMAGE_DECLARE(lottery);
 LV_IMAGE_DECLARE(act1);
 LV_IMAGE_DECLARE(act2);
 
-#define FILE_MP3 "/mnt/UDISK/music/test.mp3"
-#define FILE_WAV "/mnt/UDISK/music/test.wav"
-#define FILE_MP4 "/mnt/UDISK/video/test.mp4"
+#define FILE_CLICK      "/mnt/UDISK/key.wav"
+#define FILE_BACKGROUND "/mnt/UDISK/test.wav"
+#define FILE_ADV        "/mnt/UDISK/test.mp4"
 
 /**********************
  *  STYLE
@@ -53,6 +53,9 @@ LV_IMAGE_DECLARE(act2);
 
 static lv_style_t btn_style;
 static lv_style_t layer2_s;
+
+void btn_sty(int32_t w, int32_t h, lv_obj_t * btn);
+void layer2_style(lv_obj_t * obj);
 
 void btn_sty(int32_t w, int32_t h, lv_obj_t *btn)
 {
@@ -75,20 +78,25 @@ void layer2_style(lv_obj_t *obj)
  *  STATIC VARIABLES
  **********************/
 
-static void mian_page();
-static void Activity_page();
+static void mian_page(void);
+static void Activity_page(void);
 static void menu_page();
-static void lottery_page();
-static void setting_page();
+static void lottery_page(void);
+static void setting_page(void);
 
-void play_wav_by_aplay(const char *filename)
+void play_click_tone(void)
+{
+    play_audio(FILE_CLICK);
+}
+
+void play_audio(const char *filename)
 {
     char cmd[256];
     snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename); // 加 & 可背景播放
     system(cmd);
 }
 
-void play_mp4_by_aplay(const char *filename)
+void play_video(const char *filename)
 {
     // char cmd[256];
     // snprintf(cmd, sizeof(cmd), "player -l -r270 '%s'", filename);
@@ -112,11 +120,11 @@ static void event_handler(lv_event_t *e)
 
     if (code == LV_EVENT_PRESSED)
     {
-        play_wav_by_aplay("/mnt/UDISK/key.WAV");
+        play_click_tone();
 
         if (btn_tar == origin_btn)
         {
-            play_mp4_by_aplay("/mnt/UDISK/test.mp4");
+            play_video(FILE_ADV);
         }
 
         else if (btn_tar == Activity_btn)
@@ -628,7 +636,7 @@ void page_loop2(void)
     volume = tplayer_getvolume();
     LV_LOG_USER("volume:%d\n",volume);
 
-    play_wav_by_aplay("/mnt/UDISK/test.wav");
+    play_audio(FILE_BACKGROUND);
 
     mian_page();
 

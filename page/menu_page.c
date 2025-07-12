@@ -406,7 +406,7 @@ static void menu_list_event(lv_event_t *e)
 
     if (code == LV_EVENT_PRESSED)
     {
-        play_wav_by_aplay("/mnt/UDISK/key.WAV");
+        play_click_tone();
 
         if (btn_tar == back_btn)
         {
@@ -524,7 +524,7 @@ static void menu_order_event(lv_event_t *e)
 
     if (code == LV_EVENT_PRESSED)
     {
-        play_wav_by_aplay("/mnt/UDISK/key.WAV");
+        play_click_tone();
 
         if (btn_tar == cut_btn)
         {
@@ -558,7 +558,7 @@ void top_menu_event(lv_event_t *e)
 
     if (code == LV_EVENT_PRESSED)
     {
-        play_wav_by_aplay("/mnt/UDISK/key.WAV");
+        play_click_tone();
 
         if (btn_tar == D_btn)
         {
