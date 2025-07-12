@@ -18,7 +18,7 @@ typedef struct PLAYER_CONTEXT_T {
 } player_context_t;
 #endif
 
-static player_context_t player_context;
+static player_context_t gplayer[TUNNEL_NUM];
 
 /* a callback for tplayer. */
 static int CallbackForTPlayer(void *pUserData, int msg, int param0,
@@ -28,65 +28,65 @@ static int CallbackForTPlayer(void *pUserData, int msg, int param0,
     CEDARX_UNUSE(param1);
     switch (msg) {
     case TPLAYER_NOTIFY_PREPARED: {
-        printf("TPLAYER_NOTIFY_PREPARED,has prepared.\n");
+        printf("[%d] TPLAYER_NOTIFY_PREPARED,has prepared.\n", pPlayer->mTunnelId);
         pPlayer->mPreparedFlag = 1;
         sem_post(&pPlayer->mPreparedSem);
         break;
     }
     case TPLAYER_NOTIFY_PLAYBACK_COMPLETE: {
-        printf("TPLAYER_NOTIFY_PLAYBACK_COMPLETE\n");
-        player_context.mCompleteFlag = 1;
+        printf("[%d] TPLAYER_NOTIFY_PLAYBACK_COMPLETE\n", pPlayer->mTunnelId);
+        pPlayer->mCompleteFlag = 1;
         break;
     }
     case TPLAYER_NOTIFY_SEEK_COMPLETE: {
-        printf("TPLAYER_NOTIFY_SEEK_COMPLETE>>>>info: seek ok.\n");
+        printf("[%d] TPLAYER_NOTIFY_SEEK_COMPLETE>>>>info: seek ok.\n", pPlayer->mTunnelId);
         break;
     }
     case TPLAYER_NOTIFY_MEDIA_ERROR: {
         switch (param0) {
         case TPLAYER_MEDIA_ERROR_UNKNOWN: {
-            printf("erro type:TPLAYER_MEDIA_ERROR_UNKNOWN\n");
+            printf("[%d] erro type:TPLAYER_MEDIA_ERROR_UNKNOWN\n", pPlayer->mTunnelId);
             break;
         }
         case TPLAYER_MEDIA_ERROR_UNSUPPORTED: {
-            printf("erro type:TPLAYER_MEDIA_ERROR_UNSUPPORTED\n");
+            printf("[%d] erro type:TPLAYER_MEDIA_ERROR_UNSUPPORTED\n", pPlayer->mTunnelId);
             break;
         }
         case TPLAYER_MEDIA_ERROR_IO: {
-            printf("erro type:TPLAYER_MEDIA_ERROR_IO\n");
+            printf("[%d] erro type:TPLAYER_MEDIA_ERROR_IO\n", pPlayer->mTunnelId);
             break;
         }
         }
-        printf("error: open media source fail.\n");
+        printf("[%d] error: open media source fail.\n", pPlayer->mTunnelId);
         break;
     }
     case TPLAYER_NOTIFY_NOT_SEEKABLE: {
         pPlayer->mSeekable = 0;
-        printf("info: media source is unseekable.\n");
+        printf("[%d] info: media source is unseekable.\n", pPlayer->mTunnelId);
         break;
     }
     case TPLAYER_NOTIFY_BUFFER_START: {
-        printf("have no enough data to play\n");
+        printf("[%d] have no enough data to play\n", pPlayer->mTunnelId);
         break;
     }
     case TPLAYER_NOTIFY_BUFFER_END: {
-        printf("have enough data to play again\n");
+        printf("[%d] have enough data to play again\n", pPlayer->mTunnelId);
         break;
     }
     case TPLAYER_NOTIFY_VIDEO_FRAME: {
-        /* printf("get the decoded video frame\n"); */
+        /* printf("[%d] get the decoded video frame\n", pPlayer->mTunnelId); */
         break;
     }
     case TPLAYER_NOTIFY_AUDIO_FRAME: {
-        /* printf("get the decoded audio frame\n"); */
+        /* printf("[%d] get the decoded audio frame\n", pPlayer->mTunnelId); */
         break;
     }
     case TPLAYER_NOTIFY_SUBTITLE_FRAME: {
-        /* printf("get the decoded subtitle frame\n"); */
+        /* printf("[%d] get the decoded subtitle frame\n", pPlayer->mTunnelId); */
         break;
     }
     default: {
-        printf("warning: unknown callback from Tinaplayer.\n");
+        printf("[%d] warning: unknown callback from Tinaplayer.\n", pPlayer->mTunnelId);
         break;
     }
     }
@@ -94,162 +94,175 @@ static int CallbackForTPlayer(void *pUserData, int msg, int param0,
 }
 
 int tplayer_init(TplayerVideoRotateType rotateDegree) {
-    /* * create a player. */
-    player_context.mTPlayer = TPlayerCreate(CEDARX_PLAYER);
-    if (player_context.mTPlayer == NULL) {
-        printf("can not create tplayer, quit.\n");
-        return -1;
+    for (int i = 0; i < TUNNEL_NUM; i++) {
+        /* * create a player. */
+        gplayer[i].mTPlayer = TPlayerCreate(CEDARX_PLAYER);
+        if (gplayer[i].mTPlayer == NULL) {
+            printf("[%d] can not create tplayer, quit.\n", i);
+            return -1;
+        }
+        /* * set callback to player. */
+        TPlayerSetNotifyCallback(gplayer[i].mTPlayer, CallbackForTPlayer,
+                (void*) &gplayer[i]);
+        /* set player start status */
+        gplayer[i].mError = 0;
+        gplayer[i].mSeekable = 1;
+        gplayer[i].mPreparedFlag = 0;
+        gplayer[i].mLoopFlag = 0;
+        gplayer[i].mSetLoop = 0;
+        gplayer[i].mMediaInfo = NULL;
+        gplayer[i].mCompleteFlag = 0;
+        sem_init(&gplayer[i].mPreparedSem, 0, 0);
+        TPlayerReset(gplayer[i].mTPlayer);
+        TPlayerSetDebugFlag(gplayer[i].mTPlayer, 0);
+        TPlayerSetRotate(gplayer[i].mTPlayer, rotateDegree);
     }
-    /* * set callback to player. */
-    TPlayerSetNotifyCallback(player_context.mTPlayer, CallbackForTPlayer,
-            (void*) &player_context);
-    /* set player start status */
-    player_context.mError = 0;
-    player_context.mSeekable = 1;
-    player_context.mPreparedFlag = 0;
-    player_context.mLoopFlag = 0;
-    player_context.mSetLoop = 0;
-    player_context.mMediaInfo = NULL;
-    player_context.mCompleteFlag = 0;
-    sem_init(&player_context.mPreparedSem, 0, 0);
-    TPlayerReset(player_context.mTPlayer);
-    TPlayerSetDebugFlag(player_context.mTPlayer, 0);
-    TPlayerSetRotate(player_context.mTPlayer, rotateDegree);
     return 0;
 }
 
-int tplayer_loop(int bloop) {
-    player_context.mSetLoop = bloop;
+int tplayer_loop(int id, int bloop) {
+    gplayer[id].mSetLoop = bloop;
     return 0;
 }
+
 int tplayer_exit(void) {
-    if (!player_context.mTPlayer) {
-        printf("player not init.\n");
-        return -1;
+    for (int i = TUNNEL_NUM - 1; i >= 0; i--) {
+        if (!gplayer[i].mTPlayer) {
+            printf("player not init.\n");
+            continue;
+        }
+        printf("[%d] join in\n", i);
+        TPlayerReset(gplayer[i].mTPlayer);
+        printf("[%d] player reset\n", i);
+        TPlayerDestroy(gplayer[i].mTPlayer);
+        printf("[%d] player destroy\n", i);
+        gplayer[i].mTPlayer = NULL;
+        sem_destroy(&gplayer[i].mPreparedSem);
     }
-    printf("join in\n");
-    TPlayerReset(player_context.mTPlayer);
-    printf("player reset\n");
-    TPlayerDestroy(player_context.mTPlayer);
-    printf("player destroy\n");
-    player_context.mTPlayer = NULL;
-    sem_destroy(&player_context.mPreparedSem);
     return 0;
 }
 
-int tplayer_play_url(const char *parth) {
-    ISNULL(player_context.mTPlayer);
-    TPlayerReset(player_context.mTPlayer);
-    if (TPlayerSetDataSource(player_context.mTPlayer, parth, NULL) != 0) {
-        printf("TPlayerSetDataSource() return fail.\n");
+int tplayer_play_url(int id, const char *parth) {
+    ISNULL(gplayer[id].mTPlayer);
+    TPlayerReset(gplayer[id].mTPlayer);
+    if (TPlayerSetDataSource(gplayer[id].mTPlayer, parth, NULL) != 0) {
+        printf("[%d] TPlayerSetDataSource() return fail.\n", id);
         return -1;
     } else {
-        printf("setDataSource end\n");
+        printf("[%d] setDataSource end\n", id);
     }
-    player_context.mPreparedFlag = 0;
-    if (TPlayerPrepareAsync(player_context.mTPlayer) != 0) {
-        printf("TPlayerPrepareAsync() return fail.\n");
+    gplayer[id].mPreparedFlag = 0;
+    if (TPlayerPrepareAsync(gplayer[id].mTPlayer) != 0) {
+        printf("[%d] TPlayerPrepareAsync() return fail.\n", id);
         return -1;
     } else {
-        printf("prepare\n");
+        printf("[%d] prepare\n", id);
     }
-    sem_wait(&player_context.mPreparedSem);
-    printf("prepared ok\n");
+    sem_wait(&gplayer[id].mPreparedSem);
+    printf("[%d] prepared ok\n", id);
     return 0;
 }
 
-int tplayer_play(void) {
-    ISNULL(player_context.mTPlayer);
-    if (!player_context.mPreparedFlag) {
-        printf("not prepared!\n");
+int tplayer_play(int id) {
+    ISNULL(gplayer[id].mTPlayer);
+    if (!gplayer[id].mPreparedFlag) {
+        printf("[%d] not prepared!\n", id);
         return -1;
     }
-    if (TPlayerIsPlaying(player_context.mTPlayer)) {
-        printf("already palying!\n");
+    if (TPlayerIsPlaying(gplayer[id].mTPlayer)) {
+        printf("[%d] already playing!\n", id);
         return -1;
     }
-    player_context.mCompleteFlag = 0;
-    return TPlayerStart(player_context.mTPlayer);
-}
-int tplayer_setvolume(int volume) {
-    return TPlayerSetVolume(player_context.mTPlayer, volume);
-}
-int tplayer_getvolume() {
-    return TPlayerGetVolume(player_context.mTPlayer);
-}
-int tplayer_pause(void) {
-    ISNULL(player_context.mTPlayer);
-    if (!TPlayerIsPlaying(player_context.mTPlayer)) {
-        printf("not playing!\n");
-        return -1;
-    }
-    return TPlayerPause(player_context.mTPlayer);
+    gplayer[id].mCompleteFlag = 0;
+    return TPlayerStart(gplayer[id].mTPlayer);
 }
 
-int tplayer_seekto(int nSeekTimeMs) {
-    ISNULL(player_context.mTPlayer);
-    if (!player_context.mPreparedFlag) {
+int tplayer_setvolume(int id, int volume) {
+    int ret;
+    ISNULL(gplayer[id].mTPlayer);
+    ret = TPlayerSetVolume(gplayer[id].mTPlayer, volume);
+    if(ret == 0) gplayer[id].mVolume = volume;
+    return ret;
+}
+
+int tplayer_getvolume(int id) {
+    ISNULL(gplayer[id].mTPlayer);
+    gplayer[id].mVolume = TPlayerGetVolume(gplayer[id].mTPlayer);
+    return gplayer[id].mVolume;
+}
+
+int tplayer_pause(int id) {
+    ISNULL(gplayer[id].mTPlayer);
+    if (!TPlayerIsPlaying(gplayer[id].mTPlayer)) {
+        printf("[%d] not playing!\n", id);
+        return -1;
+    }
+    return TPlayerPause(gplayer[id].mTPlayer);
+}
+
+int tplayer_seekto(int id, int nSeekTimeMs) {
+    ISNULL(gplayer[id].mTPlayer);
+    if (!gplayer[id].mPreparedFlag) {
         printf("not prepared!\n");
         return -1;
     }
 
     /*
-     if(TPlayerIsPlaying(player_context.mTPlayer)){
-     printf("seekto can not at palying state!\n");
+     if(TPlayerIsPlaying(gplayer[id].mTPlayer)){
+     printf("[%d] seekto can not at palying state!\n", id);
      return -1;
      }
      */
-    return TPlayerSeekTo(player_context.mTPlayer, nSeekTimeMs);
+    return TPlayerSeekTo(gplayer[id].mTPlayer, nSeekTimeMs);
 }
 
-int tplayer_stop(void) {
-    ISNULL(player_context.mTPlayer);
-    if (!player_context.mPreparedFlag) {
-        printf("not prepared!\n");
+int tplayer_stop(int id) {
+    ISNULL(gplayer[id].mTPlayer);
+    if (!gplayer[id].mPreparedFlag) {
+        printf("[%d] not prepared!\n", id);
         return -1;
     }
-    return TPlayerStop(player_context.mTPlayer);
+    return TPlayerStop(gplayer[id].mTPlayer);
 }
 
-int tplayer_setlooping(bool bLoop) {
-    ISNULL(player_context.mTPlayer);
-    return TPlayerSetLooping(player_context.mTPlayer, bLoop);
+int tplayer_setlooping(int id, bool bLoop) {
+    ISNULL(gplayer[id].mTPlayer);
+    return TPlayerSetLooping(gplayer[id].mTPlayer, bLoop);
 }
 
-int tplayer_setscaledown(TplayerVideoScaleDownType nHorizonScaleDown,
+int tplayer_setscaledown(int id, TplayerVideoScaleDownType nHorizonScaleDown,
         TplayerVideoScaleDownType nVerticalScaleDown) {
-    ISNULL(player_context.mTPlayer);
-    return TPlayerSetScaleDownRatio(player_context.mTPlayer, nHorizonScaleDown,
+    ISNULL(gplayer[id].mTPlayer);
+    return TPlayerSetScaleDownRatio(gplayer[id].mTPlayer, nHorizonScaleDown,
             nVerticalScaleDown);
 }
 
-int tplayer_setdisplayrect(int x, int y, unsigned int width,
+int tplayer_setdisplayrect(int id, int x, int y, unsigned int width,
         unsigned int height) {
-    ISNULL(player_context.mTPlayer);
-    TPlayerSetDisplayRect(player_context.mTPlayer, x, y, width, height);
-
+    ISNULL(gplayer[id].mTPlayer);
+    TPlayerSetDisplayRect(gplayer[id].mTPlayer, x, y, width, height);
     return 0;
 }
 
-int tplayer_setrotate(TplayerVideoRotateType rotateDegree) {
-    ISNULL(player_context.mTPlayer);
-    return TPlayerSetRotate(player_context.mTPlayer, rotateDegree);
+int tplayer_setrotate(int id, TplayerVideoRotateType rotate) {
+    ISNULL(gplayer[id].mTPlayer);
+    return TPlayerSetRotate(gplayer[id].mTPlayer, rotate);
 }
 
-MediaInfo* tplayer_getmediainfo(void) {
-    return TPlayerGetMediaInfo(player_context.mTPlayer);
+MediaInfo* tplayer_getmediainfo(int id) {
+    return TPlayerGetMediaInfo(gplayer[id].mTPlayer);
 }
 
-int tplayer_getduration(int *msec) {
-    ISNULL(player_context.mTPlayer);
-    return TPlayerGetDuration(player_context.mTPlayer, msec);
+int tplayer_getduration(int id, int *msec) {
+    ISNULL(gplayer[id].mTPlayer);
+    return TPlayerGetDuration(gplayer[id].mTPlayer, msec);
 }
 
-int tplayer_getcurrentpos(int *msec) {
-    ISNULL(player_context.mTPlayer);
-    return TPlayerGetCurrentPosition(player_context.mTPlayer, msec);
+int tplayer_getcurrentpos(int id, int *msec) {
+    ISNULL(gplayer[id].mTPlayer);
+    return TPlayerGetCurrentPosition(gplayer[id].mTPlayer, msec);
 }
 
-int tplayer_getcompletestate(void) {
-    return player_context.mCompleteFlag;
+int tplayer_getcompletestate(int id) {
+    return gplayer[id].mCompleteFlag;
 }

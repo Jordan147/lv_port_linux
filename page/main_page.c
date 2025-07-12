@@ -504,14 +504,14 @@ static void slider_event_cb(lv_event_t *e)
     lv_label_set_text(slider_label, buf);
     lv_obj_align_to(slider_label, slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
-    if (tplayer_setvolume(slider_value) < 0)
+    if (tplayer_setvolume(TUNNEL_AUDIO, slider_value) < 0)
     {
         LV_LOG_ERROR("Failed to set volume: %d\n", slider_value);
         return;
     }
     LV_LOG_USER("slider_value:%d\n", slider_value);
 
-    volume = tplayer_getvolume();
+    volume = tplayer_getvolume(TUNNEL_AUDIO);
     LV_LOG_USER("volume:%d\n", volume);
 }
 
@@ -633,7 +633,7 @@ void page_loop2(void)
 {
     tplayer_init(LV_DISPLAY_ROTATION_90);
     LV_LOG_USER("LVGL START!!!\n");
-    volume = tplayer_getvolume();
+    volume = tplayer_getvolume(TUNNEL_AUDIO);
     LV_LOG_USER("volume:%d\n",volume);
 
     play_audio(FILE_BACKGROUND);

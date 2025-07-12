@@ -2,6 +2,7 @@
     "files.associations": {
         "simulator_settings.h": "c",
         "stdlib.h": "c",
-        "menu_page.h": "c"
+        "menu_page.h": "c",
+        "random": "c"
     }
 }

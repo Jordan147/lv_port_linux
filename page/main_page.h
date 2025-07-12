@@ -8,14 +8,13 @@ extern "C"
 
 #include "lvgl/lvgl.h"
 
-#define CEDARC_DEBUG    0
-
     extern const lv_font_t lv_jf_16;
     LV_FONT_DECLARE(lv_jf_16);
 
     void page_loop2(void);
     void btn_pic(lv_obj_t *btn, const void *img_src, lv_event_cb_t event_cb);
-    void play_audio(const char *filename);
+    void play_click_tone(void);
+    void play_audio(const char * filename);
     void play_video(const char *filename);
 
 #ifdef __cplusplus
