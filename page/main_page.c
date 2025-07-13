@@ -89,7 +89,19 @@ static void set_list(lv_obj_t * parent);
 
 void play_click_tone(void)
 {
-    play_audio(FILE_CLICK);
+    static initialized = false;
+
+    printf("playing click tone %s\n", FILE_CLICK);
+    if (!initialized) {
+        if (tplayer_play_url(TUNNEL_CLICK, FILE_CLICK) < 0) {
+            printf("failed to init %s\n", FILE_CLICK);
+            return;
+        }
+        initialized = true;
+    }
+    if (tplayer_play(TUNNEL_CLICK) < 0) {
+        printf("failed to play %s\n", FILE_CLICK);
+    }
 }
 
 void play_audio(const char *filename)
@@ -97,6 +109,15 @@ void play_audio(const char *filename)
     // char cmd[256];
     // snprintf(cmd, sizeof(cmd), "aplay '%s' &", filename); // 加 & 可背景播放
     // system(cmd);
+
+    printf("playing audio %s\n", filename);
+    if (tplayer_play_url(TUNNEL_AUDIO, filename) < 0) {
+        printf("failed to init audio %s\n", filename);
+        return;
+    }
+    if(tplayer_play(TUNNEL_AUDIO) < 0) {
+        printf("failed to play %s\n", filename);
+    }
 }
 
 void play_video(const char *filename)
@@ -105,15 +126,15 @@ void play_video(const char *filename)
     // snprintf(cmd, sizeof(cmd), "player -l -r270 '%s'", filename);
     // system(cmd);
 
-    // if (tplayer_play_url(filename) < 0)
-    // {
-    //     printf("Failed to play video: %s\n", filename);
-    // }
-    // else
-    // {
-    //     printf("Playing video: %s\n", filename);
-    //     tplayer_play();
-    // }
+    printf("Playing video: %s\n", filename);
+    if (tplayer_play_url(TUNNEL_VIDEO, filename) < 0)
+    {
+        printf("Failed to init video: %s\n", filename);
+    }
+    if (tplayer_play(TUNNEL_VIDEO))
+    {
+        printf("failed to play %s\n", filename);
+    }
 }
 
 static void event_handler(lv_event_t *e)

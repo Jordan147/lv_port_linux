@@ -14,12 +14,12 @@
 #include <tplayer.h>
 
 #define MSG_USRPLAYEXIT 103
-#define TUNNEL_NUM 		1
+#define TUNNEL_NUM 		3
 
 enum {
 	TUNNEL_VIDEO = 0,
-	TUNNEL_AUDIO = 0,
-	TUNNEL_CLICK = 0,
+	TUNNEL_AUDIO = 1,
+	TUNNEL_CLICK = 2,
 } tunnel_type_t;
 
 typedef struct PLAYER_CONTEXT_T {

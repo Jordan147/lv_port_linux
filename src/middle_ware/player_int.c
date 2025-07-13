@@ -112,11 +112,16 @@ int tplayer_init(TplayerVideoRotateType rotate) {
         gplayer[i].mSetLoop = 0;
         gplayer[i].mMediaInfo = NULL;
         gplayer[i].mCompleteFlag = 0;
+        gplayer[i].mTunnelId = i;
         sem_init(&gplayer[i].mPreparedSem, 0, 0);
         TPlayerReset(gplayer[i].mTPlayer);
         TPlayerSetDebugFlag(gplayer[i].mTPlayer, 0);
         TPlayerSetRotate(gplayer[i].mTPlayer, rotate);
+        printf("tplayer_init [%d] done\n", i);
     }
+    TPlayerSetVideoDisplay(gplayer[TUNNEL_CLICK].mTPlayer, false);
+    TPlayerSetVideoDisplay(gplayer[TUNNEL_AUDIO].mTPlayer, false);
+    printf("tplayer_init done\n");
     return 0;
 }
 
