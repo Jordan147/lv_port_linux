@@ -30,7 +30,7 @@
 #include "src/lib/simulator_util.h"
 #include "src/lib/simulator_settings.h"
 
-#include "gpiolib.h"
+#include "middle_ware/gpiolib.h"
 #include "page/main_page.h"
 
 #define PIN_NO(port, line)      (((port) - 'A') * 0x20 + (line))

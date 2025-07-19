@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "../../gpiolib.h"
+#include "src/middle_ware/gpiolib.h"
 #include "lvgl/lvgl.h"
 #if LV_USE_LINUX_FBDEV
 #include "../simulator_util.h"

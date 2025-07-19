@@ -10,7 +10,7 @@ CXX             = $(CROSS_COMPILE)g++
 
 LVGL_DIR_NAME   ?= lvgl
 LVGL_DIR        ?= .
-STAGING_DIR     = ${HOME}/Tina-Linux/out/t113-bingpi_m2/staging_dir
+STAGING_DIR     = ${HOME}/Tina-Linux/out/t113-bingpi_m2/staging_dir/target
 export STAGING_DIR
 
 WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qualifiers -Wextra -Wno-unused-function -Wno-error=strict-prototypes -Wpointer-arith \
@@ -19,10 +19,11 @@ WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qu
                    -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated -Wempty-body \
                    -Wshift-negative-value -Wstack-usage=2048 -Wno-unused-value -std=gnu99
 CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ -I$(LVGL_DIR)/$(LVGL_DIR_NAME)/src/libs $(WARNINGS) \
-				   -I${STAGING_DIR}/target/usr/include \
-				   -I${STAGING_DIR}/target/usr/include/allwinner \
-				   -I${STAGING_DIR}/target/usr/include/allwinner/include
-LDFLAGS         ?= -lm -L${STAGING_DIR}/target/usr/lib \
+				   -I${STAGING_DIR}/usr/include \
+				   -I${STAGING_DIR}/usr/include/allwinner \
+				   -I${STAGING_DIR}/usr/include/allwinner/include \
+				   -DCEDARC_DEBUG=0
+LDFLAGS         ?= -lm -L${STAGING_DIR}/usr/lib \
 				   -ltrecorder -ltplayer -lxplayer -lvdecoder -ladecoder -lsubdecoder \
 				   -lcdc_base -lVE -lMemAdapter -lcdx_parser  -lcdx_playback -lcdx_stream \
 				   -lcdx_base -lawrecorder -lvencoder -laencoder -lcdx_muxer -ljpegdecode \
