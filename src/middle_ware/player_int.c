@@ -18,6 +18,8 @@ typedef struct PLAYER_CONTEXT_T {
 } player_context_t;
 #endif
 
+extern void restore_last_screen(void);
+
 static player_context_t player_context;
 
 /* a callback for tplayer. */
@@ -36,6 +38,7 @@ static int CallbackForTPlayer(void *pUserData, int msg, int param0,
     case TPLAYER_NOTIFY_PLAYBACK_COMPLETE: {
         printf("TPLAYER_NOTIFY_PLAYBACK_COMPLETE\n");
         player_context.mCompleteFlag = 1;
+        restore_last_screen();
         break;
     }
     case TPLAYER_NOTIFY_SEEK_COMPLETE: {

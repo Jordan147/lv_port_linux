@@ -13,6 +13,9 @@
 /*********************
  *      DEFINES
  *********************/
+int volume;
+lv_obj_t *last_screen;
+lv_obj_t *video_cont;
 
 static lv_obj_t *parent0;
 static lv_obj_t *bg_img;
@@ -32,6 +35,9 @@ static lv_obj_t *lottery_btn;
 static lv_obj_t *home_btn;
 static lv_obj_t *set_btn;
 
+static lv_style_t btn_style;
+static lv_style_t layer2_s;
+
 LV_IMG_DECLARE(bakp);
 LV_IMG_DECLARE(home);
 LV_IMG_DECLARE(Activity);
@@ -41,20 +47,18 @@ LV_IMG_DECLARE(lottery);
 LV_IMG_DECLARE(act1);
 LV_IMG_DECLARE(act2);
 
-int volume;
-
-static lv_style_t btn_style;
-static lv_style_t layer2_s;
-
 static void mian_page(void);
 static void Activity_page(void);
 static void menu_page(void);
 static void lottery_page(void);
 static void setting_page(void);
+static void video_click_event_cb(lv_event_t *e);
+void media_player(const char * filename);
 void btn_sty(int32_t w, int32_t h, lv_obj_t * btn);
 void layer2_style(lv_obj_t * obj);
 void test4(lv_obj_t * parent);
 void set_list(lv_obj_t * parent);
+void restore_last_screen(void);
 
 void btn_sty(int32_t w, int32_t h, lv_obj_t *btn)
 {
@@ -73,17 +77,40 @@ void layer2_style(lv_obj_t *obj)
     lv_obj_add_style(obj, &layer2_s, 0);
 }
 
-void play_mp4_by_aplay(const char *filename)
+void media_player(const char *filename)
 {
-    if (tplayer_play_url(filename) < 0)
-    {
-        printf("Failed to play video: %s\n", filename);
+    char * ptr = strchr(filename, '.');
+    if(ptr == NULL) {
+        printf("illegal media filename: %s\n", filename);
+        return;
+    }
+    if (strcmp(ptr, ".wav") == 0 || \
+        strcmp(ptr, ".mp3") == 0) {
+        if (tplayer_play_url(filename) < 0)
+        {
+            printf("Failed to play audio: %s\n", filename);
+        }
+        else
+        {
+            printf("Playing audio: %s\n", filename);
+            tplayer_play();
+        }
+    }
+    else if (strcmp(ptr, ".mp4") == 0) {
+        if (tplayer_play_url(filename) < 0)
+        {
+            printf("Failed to play video: %s\n", filename);
+        }
+        else
+        {
+            last_screen = lv_screen_active();
+            lv_scr_load(video_cont);
+            printf("Playing video: %s\n", filename);
+            tplayer_play();
+        }
     }
     else
-    {
-        printf("Playing video: %s\n", filename);
-        tplayer_play();
-    }
+        printf("Not supported media file: %s\n", filename);
 }
 
 static void event_handler(lv_event_t *e)
@@ -93,11 +120,11 @@ static void event_handler(lv_event_t *e)
 
     if (code == LV_EVENT_PRESSED)
     {
-        play_mp4_by_aplay(MEDIA_CLICK);
+        media_player(MEDIA_CLICK);
 
         if (btn_tar == origin_btn)
         {
-            play_mp4_by_aplay(MEDIA_ADVERTISEMENT);
+            media_player(MEDIA_ADVERTISEMENT);
         }
 
         else if (btn_tar == Activity_btn)
@@ -182,6 +209,8 @@ static void mian_page()
     set_btn = lv_btn_create(gird_cont);
     lv_obj_set_grid_cell(set_btn, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 3, 1);
     btn_pic(set_btn, LV_SYMBOL_SETTINGS, event_handler);
+
+    last_screen = main_page_bg;
 }
 
 static void menu_page()
@@ -559,7 +588,7 @@ static void setting_page()
     lv_obj_align_to(parent, cont_row, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
 }
 
-void page_loop2(void)
+void page_loop2()
 {
     LV_LOG_USER("LVGL START!!!\n");
     if (tplayer_init(TPLAYER_VIDEO_ROTATE_DEGREE_90) < 0)
@@ -568,9 +597,34 @@ void page_loop2(void)
         return;
     }
 
-    play_mp4_by_aplay(MEDIA_BACKGROUD);
+    media_player(MEDIA_BACKGROUD);
+
+    // Create video play theme
+    video_cont = lv_obj_create(NULL);
+    lv_obj_set_style_bg_opa(video_cont, LV_OPA_TRANSP, 0);
+
+    lv_obj_t *btn = lv_obj_create(video_cont);
+    lv_obj_remove_style_all(btn);
+    lv_obj_set_size(btn, LV_HOR_RES, LV_VER_RES);
+    lv_obj_set_style_bg_opa(btn, LV_OPA_TRANSP, 0);
+    lv_obj_add_event_cb(btn, video_click_event_cb, LV_EVENT_CLICKED, NULL);
 
     mian_page();
 
     lv_scr_load(main_page_bg);
+}
+
+void restore_last_screen(void)
+{
+    // if(last_screen == lv_screen_active()) return;
+    // lv_scr_load(last_screen);
+}
+
+static void video_click_event_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_CLICKED) {
+        printf("video screen clicked\n");
+        restore_last_screen();
+    }
 }
