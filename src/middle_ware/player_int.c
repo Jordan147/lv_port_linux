@@ -18,7 +18,9 @@ typedef struct PLAYER_CONTEXT_T {
 } player_context_t;
 #endif
 
-extern void restore_last_screen(void);
+#include "lvgl/lvgl.h"
+
+extern lv_obj_t * video_btn;
 
 static player_context_t player_context;
 
@@ -38,7 +40,7 @@ static int CallbackForTPlayer(void *pUserData, int msg, int param0,
     case TPLAYER_NOTIFY_PLAYBACK_COMPLETE: {
         printf("TPLAYER_NOTIFY_PLAYBACK_COMPLETE\n");
         player_context.mCompleteFlag = 1;
-        restore_last_screen();
+        lv_obj_send_event(video_btn, LV_EVENT_LEAVE, NULL); // Send a click event to the video_btn
         break;
     }
     case TPLAYER_NOTIFY_SEEK_COMPLETE: {

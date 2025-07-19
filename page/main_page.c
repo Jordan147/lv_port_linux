@@ -14,8 +14,9 @@
  *      DEFINES
  *********************/
 int volume;
-lv_obj_t *last_screen;
+bool video_active;
 lv_obj_t *video_cont;
+lv_obj_t *video_btn;
 
 static lv_obj_t *parent0;
 static lv_obj_t *bg_img;
@@ -52,13 +53,13 @@ static void Activity_page(void);
 static void menu_page(void);
 static void lottery_page(void);
 static void setting_page(void);
-static void video_click_event_cb(lv_event_t *e);
+static void video_event_cb(lv_event_t *e);
 void media_player(const char * filename);
 void btn_sty(int32_t w, int32_t h, lv_obj_t * btn);
 void layer2_style(lv_obj_t * obj);
 void test4(lv_obj_t * parent);
 void set_list(lv_obj_t * parent);
-void restore_last_screen(void);
+void video_layer_switch_opa(bool opa);
 
 void btn_sty(int32_t w, int32_t h, lv_obj_t *btn)
 {
@@ -103,8 +104,8 @@ void media_player(const char *filename)
         }
         else
         {
-            last_screen = lv_screen_active();
-            lv_scr_load(video_cont);
+            video_active = true;
+            video_layer_switch_opa(true);
             printf("Playing video: %s\n", filename);
             tplayer_play();
         }
@@ -209,8 +210,6 @@ static void mian_page()
     set_btn = lv_btn_create(gird_cont);
     lv_obj_set_grid_cell(set_btn, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_CENTER, 3, 1);
     btn_pic(set_btn, LV_SYMBOL_SETTINGS, event_handler);
-
-    last_screen = main_page_bg;
 }
 
 static void menu_page()
@@ -591,7 +590,7 @@ static void setting_page()
 void page_loop2()
 {
     LV_LOG_USER("LVGL START!!!\n");
-    if (tplayer_init(TPLAYER_VIDEO_ROTATE_DEGREE_90) < 0)
+    if (tplayer_init(TPLAYER_VIDEO_ROTATE_DEGREE_270) < 0)
     {
         LV_LOG_USER("tplayer init failed\n");
         return;
@@ -603,28 +602,87 @@ void page_loop2()
     video_cont = lv_obj_create(NULL);
     lv_obj_set_style_bg_opa(video_cont, LV_OPA_TRANSP, 0);
 
-    lv_obj_t *btn = lv_obj_create(video_cont);
-    lv_obj_remove_style_all(btn);
-    lv_obj_set_size(btn, LV_HOR_RES, LV_VER_RES);
-    lv_obj_set_style_bg_opa(btn, LV_OPA_TRANSP, 0);
-    lv_obj_add_event_cb(btn, video_click_event_cb, LV_EVENT_CLICKED, NULL);
+    video_btn = lv_obj_create(video_cont);
+    lv_obj_remove_style_all(video_btn);
+    lv_obj_set_size(video_btn, LV_HOR_RES, LV_VER_RES);
+    lv_obj_set_style_bg_opa(video_btn, LV_OPA_TRANSP, 0);
+    lv_obj_add_event_cb(video_btn, video_event_cb, LV_EVENT_ALL, NULL);
 
     mian_page();
 
     lv_scr_load(main_page_bg);
 }
 
-void restore_last_screen(void)
-{
-    // if(last_screen == lv_screen_active()) return;
-    // lv_scr_load(last_screen);
-}
-
-static void video_click_event_cb(lv_event_t *e)
+static void video_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    if(code == LV_EVENT_CLICKED) {
-        printf("video screen clicked\n");
-        restore_last_screen();
+    switch (code) {
+        case LV_EVENT_CLICKED:
+            video_active = false;
+            tplayer_stop();
+            video_layer_switch_opa(false);
+            break;
+        case LV_EVENT_LEAVE:
+            if (video_active) {
+                video_active = false;
+                video_layer_switch_opa(false);
+            }
+            else
+                printf("complete audio playback\n");
+            break;
+        default: break;
+    }
+}
+
+void video_layer_switch_opa(bool opa)
+{
+    /* Transparent background style */
+    static lv_style_t style_scr_act;
+    if (style_scr_act.prop_cnt == 0) {
+        lv_style_init(&style_scr_act);
+        lv_style_set_bg_opa(&style_scr_act, LV_OPA_COVER);
+        lv_obj_add_style(lv_scr_act(), &style_scr_act, 0);
+    }
+
+    /* 这里根据按钮状态，切换不同风格，一种是UI能够透明看到底下的视频，一种是UI覆盖视频，视频就看不到了 */
+    if (opa)
+    {
+        printf("Switch to transparent UI\n");
+        // lv_scr_load(video_cont);
+        // /* 这里切换为UI透明 */
+        // // lv_label_set_text(label, "Stop");
+        // /* 这里设置屏幕是透明的 */
+        // lv_disp_get_default()
+        // lv_disp_get_default()->driver->screen_transp = 1;
+        // /* 这里设置屏幕背景是透明的 */
+        // lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_TRANSP);
+        // /* 这里清空屏幕，不清空的话，可能不会生效 */
+        // lv_memset_00(lv_disp_get_default()->driver->draw_buf->buf_act,
+        //              lv_disp_get_default()->driver->draw_buf->size * sizeof(lv_color32_t));
+        // /* 这里屏幕风格切换为透明的 */
+        // lv_style_set_bg_opa(&style_scr_act, LV_OPA_TRANSP);
+        // /* 通知风格变化，需要更新 */
+        // lv_obj_report_style_change(&style_scr_act);
+
+        lv_scr_load(video_cont);
+        lv_obj_set_style_bg_opa(video_cont, LV_OPA_TRANSP, LV_PART_MAIN);
+    }
+    else
+    {
+        printf("Switch to opaque UI\n");
+        lv_scr_load(main_page_bg);
+        // /* 这里切换为UI不透明，也就是覆盖视频 */
+        // // lv_label_set_text(label, "Play");
+        // /* 这里设置屏幕是不透明的 */
+        // lv_disp_get_default()->driver->screen_transp = 0;
+        // /* 这里设置屏幕背景是不透明的 */
+        // lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
+        // /* 这里屏幕风格切换为不透明的 */
+        // lv_style_set_bg_opa(&style_scr_act, LV_OPA_COVER);
+        // /* 通知风格变化，需要更新 */
+        // lv_obj_report_style_change(&style_scr_act);
+
+        lv_disp_t * disp = lv_disp_get_default();
+        lv_disp_set_bg_opa(disp, LV_OPA_COVER);
     }
 }

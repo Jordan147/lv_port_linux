@@ -32,7 +32,7 @@ int tplayer_exit(void);
 int tplayer_play_url(const char *parth);
 int tplayer_play(void);
 int tplayer_setvolume(int volume);
-int tplayer_getvolume();
+int tplayer_getvolume(void);
 int tplayer_pause(void);
 int tplayer_seekto(int nSeekTimeMs);
 int tplayer_stop(void);
