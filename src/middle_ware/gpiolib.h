@@ -14,8 +14,6 @@ int gpio_write(int gpio, int val);
 int gpio_setedge(int gpio, int rising, int falling);
 /* Blocks on select until GPIO toggles on edge */
 int gpio_select(int gpio);
-int gpio_select_no_wait(int gpio);
-
 /* Return the GPIO file descriptor */
 int gpio_getfd(int gpio);
 

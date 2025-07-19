@@ -113,7 +113,6 @@ static void discovery_cb(lv_indev_t *indev, lv_evdev_type_t type, void *user_dat
 
     lv_display_t *disp = user_data;
     lv_indev_set_display(indev, disp);
-
     if(type == LV_EVDEV_TYPE_REL) {
         set_mouse_cursor_icon(indev, disp);
     }

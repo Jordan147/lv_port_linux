@@ -36,14 +36,12 @@
 #define PIN_NO(port, line)      (((port) - 'A') * 0x20 + (line))
 #define GPIO_KEY_PIN            PIN_NO('G', 8)
 #define GPIO_LED_PIN            PIN_NO('G', 7)
-#define KEY_DEBOUNCE_INTERVAL   50      // ms
-#define TICK_PERIOD             5       // ms
-#define LED_FLASH_INTERVAL      1000    // ms
 
 /* Internal functions */
 static void configure_simulator(int argc, char **argv);
 static void print_lvgl_version(void);
 static void print_usage(void);
+static void keypad_read(lv_indev_t * indev, lv_indev_data_t * data);
 
 /* contains the name of the selected backend if user
  * has specified one on the command line */
@@ -168,6 +166,10 @@ int main(int argc, char **argv)
     }
 #endif
 
+    lv_indev_t * indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(indev, keypad_read);
+
     /*Create a Demo*/
 #if LV_USE_DEMO_WIDGETS
     lv_demo_widgets();
@@ -182,4 +184,34 @@ int main(int argc, char **argv)
     driver_backends_run_loop();
 
     return 0;
+}
+
+static void keypad_read(lv_indev_t * indev, lv_indev_data_t*data)
+{
+    static int state_old = 1; // Default state is released
+    static int led_flash_count = 0;
+    static bool led_state = false;
+    int state = gpio_read(GPIO_KEY_PIN); // Read the GPIO key state
+
+    if (state != state_old) {
+        state_old = state; // Update the old state
+
+        if (state) {
+            data->state = LV_INDEV_STATE_RELEASED; // Key is released
+            data->key = 0; // Set key value to 0 (or any other value you want)
+        } else {
+            data->state = LV_INDEV_STATE_PRESSED; // Key is pressed
+            data->key = LV_KEY_ESC; // Set keycode '27' (ESC key)
+            printf("user-key pressed, sending exit event\n");
+            lv_deinit();
+            exit(0);
+        }
+        printf("Keycode: %d\n", data->key);
+    }
+
+    if (led_flash_count++ >= 500/17) {  //500ms flash by 17ms key scanning time
+        led_flash_count = 0;
+        led_state = !led_state;
+        gpio_write(GPIO_LED_PIN, led_state);
+    }
 }

@@ -19,6 +19,7 @@ WARNINGS        := -Wall -Wshadow -Wundef -Wmissing-prototypes -Wno-discarded-qu
                    -Wno-ignored-qualifiers -Wno-error=pedantic -Wno-sign-compare -Wno-error=missing-prototypes -Wdouble-promotion -Wclobbered -Wdeprecated -Wempty-body \
                    -Wshift-negative-value -Wstack-usage=2048 -Wno-unused-value -std=gnu99
 CFLAGS          ?= -O3 -g0 -I$(LVGL_DIR)/ -I$(LVGL_DIR)/$(LVGL_DIR_NAME)/src/libs $(WARNINGS) \
+				   -I$(LVGL_DIR)/src/middle_ware \
 				   -I${STAGING_DIR}/usr/include \
 				   -I${STAGING_DIR}/usr/include/allwinner \
 				   -I${STAGING_DIR}/usr/include/allwinner/include \
